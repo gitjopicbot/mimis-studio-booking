@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mimi's Studio - Book Your Appointment</title>
-<meta name="description" content="Book your hair, color, waxing, or beauty appointment at Mimi's Studio. Tuesday-Saturday, 11AM-7PM.">
+<meta name="description" content="Book your hair, color, waxing, or beauty appointment at Mimi's Studio.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -79,7 +79,10 @@
   .footer-info { font-size: 0.95rem; opacity: 0.85; line-height: 1.8; }
   .footer-info a { color: var(--gold-light); text-decoration: none; }
   .footer-info a:hover { text-decoration: underline; }
-  .footer-hours { font-size: 0.85rem; opacity: 0.65; margin-top: 0.8rem; }
+  .footer-hours { display: none; }
+  .admin-link { position: fixed; bottom: 12px; left: 12px; z-index: 50; }
+  .admin-link a { font-size: 0.7rem; color: var(--text-light); opacity: 0.4; text-decoration: none; transition: opacity 0.3s; }
+  .admin-link a:hover { opacity: 1; }
 
   /* REMINDER PICKER */
   .reminder-timing { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
@@ -306,9 +309,6 @@
   <div class="category-label"><span class="category-icon">&#127800;</span> Waxing</div>
   <div class="services-grid" id="cat-waxing"></div>
 
-  <div class="category-label"><span class="category-icon">&#128132;</span> Makeup &amp; Other</div>
-  <div class="services-grid" id="cat-other"></div>
-
   <div class="selection-summary" id="selectionSummary" style="display:none;">
     <div class="summary-text">
       <strong id="sumCount">0</strong> service(s) selected &nbsp;&middot;&nbsp; Estimated time: <strong id="sumDuration">0 min</strong>
@@ -320,7 +320,7 @@
 <!-- ═══ PAGE 2: DATE & TIME ═══ -->
 <div class="page" id="page2">
   <h2 class="section-title">Pick a Date &amp; Time</h2>
-  <p class="section-subtitle">Mimi is available Tuesday&ndash;Saturday, 11 AM &ndash; 7 PM.</p>
+  <p class="section-subtitle">Select a date and time that works for you.</p>
 
   <div class="calendar-wrapper">
     <div class="cal-header">
@@ -434,8 +434,10 @@
     <a href="tel:+17072924914">(707) 292-4914</a> &nbsp;&middot;&nbsp;
     <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a>
   </div>
-  <div class="footer-hours">Tuesday &ndash; Saturday &nbsp;|&nbsp; 11:00 AM &ndash; 7:00 PM</div>
 </footer>
+
+<!-- Admin Link -->
+<div class="admin-link"><a href="/admin.html">Admin</a></div>
 
 <script>
 // ═══════════════════════════════════════
@@ -479,9 +481,6 @@ const FALLBACK_SERVICES = [
   { id: 30, name: "Waxing Bikini", duration_minutes: 30, category: "waxing" },
   { id: 31, name: "Waxing Brazilian Woman", duration_minutes: 60, category: "waxing" },
   { id: 32, name: "Waxing Brazilian Man", duration_minutes: 60, category: "waxing" },
-  { id: 33, name: "Personal", duration_minutes: 60, category: "other" },
-  { id: 34, name: "Custom Blend Makeup", duration_minutes: 60, category: "other" },
-  { id: 35, name: "Other 1hr Service", duration_minutes: 60, category: "other" },
 ];
 
 // ═══════════════════════════════════════
@@ -532,7 +531,7 @@ async function init() {
 //  RENDER SERVICES
 // ═══════════════════════════════════════
 function renderServices() {
-  const catMap = { haircuts: 'cat-haircuts', color: 'cat-color', perms: 'cat-perms', waxing: 'cat-waxing', other: 'cat-other' };
+  const catMap = { haircuts: 'cat-haircuts', color: 'cat-color', perms: 'cat-perms', waxing: 'cat-waxing' };
   Object.values(catMap).forEach(id => document.getElementById(id).innerHTML = '');
 
   services.forEach(svc => {
