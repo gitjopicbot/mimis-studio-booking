@@ -8,9 +8,12 @@
 [functions]
   node_bundler = "esbuild"
 
+[functions."daily-schedule"]
+  schedule = "0 3 * * *"
+
 [[headers]]
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
