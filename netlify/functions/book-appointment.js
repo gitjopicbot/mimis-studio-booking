@@ -19,9 +19,12 @@ exports.handler = async (event) => {
     const {
       firstName, lastName, email, phone,
       remindEmail, remindSms, remindBrowser,
+      reminderTiming, reminderMethod,
       notes, date, startTime, endTime,
       totalDuration, serviceIds, serviceNames
     } = body;
+
+    console.log('Booking request:', { firstName, lastName, email, date, startTime, serviceNames });
 
     // Validate required fields
     if (!firstName || !lastName || !email || !phone || !date || startTime === undefined) {
@@ -59,7 +62,7 @@ exports.handler = async (event) => {
     let clientId;
     if (existingClient) {
       clientId = existingClient.id;
-      await supabase
+      const { error: updateErr } = await supabase
         .from('clients')
         .update({
           first_name: firstName,
@@ -67,11 +70,12 @@ exports.handler = async (event) => {
           phone,
           remind_email: remindEmail,
           remind_sms: remindSms,
-          remind_browser: remindBrowser,
+          remind_browser: remindBrowser || false,
           notes,
           updated_at: new Date().toISOString()
         })
         .eq('id', clientId);
+      if (updateErr) console.log('Client update error (non-fatal):', updateErr.message);
     } else {
       const { data: newClient, error: clientErr } = await supabase
         .from('clients')
@@ -126,8 +130,9 @@ exports.handler = async (event) => {
     const endTimeFormatted = formatTime(endTime);
 
     // 6. Send confirmation email to client
+    console.log('Sending confirmation email to:', email);
     try {
-      await resend.emails.send({
+      const clientEmailResult = await resend.emails.send({
         from: 'Mimi\'s Studio <onboarding@resend.dev>',
         to: email,
         subject: `Your Appointment at Mimi's Studio - ${dateFormatted}`,
@@ -136,13 +141,15 @@ exports.handler = async (event) => {
           serviceNames, totalDuration
         })
       });
+      console.log('Client email sent:', JSON.stringify(clientEmailResult));
     } catch (emailErr) {
-      console.log('Client email error (non-fatal):', emailErr.message);
+      console.error('Client email error:', emailErr.message, JSON.stringify(emailErr));
     }
 
     // 7. Send notification email to Mimi
+    console.log('Sending notification email to Mimi:', MIMI_EMAIL);
     try {
-      await resend.emails.send({
+      const mimiEmailResult = await resend.emails.send({
         from: 'Mimi\'s Studio Booking <onboarding@resend.dev>',
         to: MIMI_EMAIL,
         subject: `New Booking: ${firstName} ${lastName} - ${dateFormatted} at ${timeFormatted}`,
@@ -152,8 +159,9 @@ exports.handler = async (event) => {
           serviceNames, totalDuration, notes
         })
       });
+      console.log('Mimi email sent:', JSON.stringify(mimiEmailResult));
     } catch (emailErr) {
-      console.log('Mimi email error (non-fatal):', emailErr.message);
+      console.error('Mimi email error:', emailErr.message, JSON.stringify(emailErr));
     }
 
     return {
@@ -166,7 +174,7 @@ exports.handler = async (event) => {
       }),
     };
   } catch (err) {
-    console.error('Booking error:', err);
+    console.error('Booking error:', err.message, JSON.stringify(err));
     return {
       statusCode: 500,
       headers: corsHeaders(),
