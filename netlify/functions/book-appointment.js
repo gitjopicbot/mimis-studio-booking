@@ -225,7 +225,10 @@ function clientEmailHtml({ firstName, dateFormatted, timeFormatted, endTimeForma
       <p style="color: #3A2820; font-weight: bold;">- Mimi's Studio</p>
     </div>
     <div style="background: #5C3D2E; padding: 15px; text-align: center;">
-      <p style="color: #9C8578; font-size: 12px; margin: 0;">Tuesday - Saturday | 11:00 AM - 7:00 PM</p>
+      <p style="color: #E0CC9D; font-size: 13px; margin: 0;">
+        <a href="tel:+17072924914" style="color: #E0CC9D; text-decoration: none;">(707) 292-4914</a> &nbsp;|&nbsp;
+        <a href="mailto:mimisstudio@gmail.com" style="color: #E0CC9D; text-decoration: none;">mimisstudio@gmail.com</a>
+      </p>
     </div>
   </div>`;
 }
@@ -247,6 +250,9 @@ function mimiEmailHtml({ firstName, lastName, email, phone, dateFormatted, timeF
         <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578; vertical-align: top;">Services</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820;">${serviceNames.join(', ')}</td></tr>
         ${notes ? `<tr><td style="padding: 10px; color: #9C8578; vertical-align: top;">Notes</td><td style="padding: 10px; color: #3A2820;">${notes}</td></tr>` : ''}
       </table>
+    </div>
+    <div style="background: #5C3D2E; padding: 12px; text-align: center;">
+      <p style="color: #E0CC9D; font-size: 12px; margin: 0;">(707) 292-4914 | mimisstudio@gmail.com</p>
     </div>
   </div>`;
 }
