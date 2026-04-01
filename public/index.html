@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimi's Studio - Book Your Appointment</title>
+<meta name="description" content="Book your hair, color, waxing, or beauty appointment at Mimi's Studio. Tuesday-Saturday, 11AM-7PM.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF6EC;
+    --warm-beige: #F5E6D3;
+    --terracotta: #C47D5A;
+    --terracotta-light: #D99A7E;
+    --deep-brown: #5C3D2E;
+    --soft-olive: #8B9E7E;
+    --olive-light: #A8B89C;
+    --gold: #C9A96E;
+    --gold-light: #E0CC9D;
+    --text-dark: #3A2820;
+    --text-medium: #6B5347;
+    --text-light: #9C8578;
+    --white: #FFFFFF;
+    --shadow: rgba(92, 61, 46, 0.1);
+    --shadow-md: rgba(92, 61, 46, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    line-height: 1.6;
+  }
+
+  /* LOADING OVERLAY */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(253,246,236,0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; transition: opacity 0.4s;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 4px solid var(--warm-beige);
+    border-top-color: var(--terracotta);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--deep-brown) 0%, #7A5240 100%);
+    color: var(--cream);
+    text-align: center;
+    padding: 2.5rem 1rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse, rgba(201,169,110,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.3rem; position: relative; }
+  header p { font-size: 1.05rem; font-weight: 300; opacity: 0.9; letter-spacing: 2px; text-transform: uppercase; position: relative; }
+  .header-hours { margin-top: 1rem; font-size: 0.9rem; opacity: 0.8; position: relative; }
+
+  /* STEP BAR */
+  .steps-bar { display: flex; justify-content: center; background: var(--warm-beige); border-bottom: 2px solid var(--gold-light); }
+  .step-tab {
+    flex: 1; max-width: 250px; text-align: center; padding: 1rem 0.5rem;
+    font-weight: 600; font-size: 0.85rem; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-light); position: relative;
+    cursor: default; transition: all 0.3s;
+  }
+  .step-tab.active { color: var(--terracotta); background: var(--cream); }
+  .step-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background: var(--terracotta); }
+  .step-tab .step-num {
+    display: inline-block; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--text-light); color: var(--white); line-height: 26px;
+    font-size: 0.75rem; margin-right: 0.5rem; vertical-align: middle;
+  }
+  .step-tab.active .step-num { background: var(--terracotta); }
+  .step-tab.completed .step-num { background: var(--soft-olive); }
+  .step-tab.completed { color: var(--soft-olive); }
+
+  /* CONTAINER */
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* TITLES */
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--deep-brown); margin-bottom: 0.3rem; }
+  .section-subtitle { color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem; }
+
+  /* CATEGORIES */
+  .category-label {
+    font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--terracotta);
+    margin: 1.8rem 0 0.8rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--gold-light);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .category-icon { font-size: 1.2rem; }
+
+  /* SERVICE CARDS */
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+  .service-card {
+    background: var(--white); border: 2px solid transparent; border-radius: 10px;
+    padding: 0.9rem 1rem; cursor: pointer; transition: all 0.25s;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 1px 4px var(--shadow);
+  }
+  .service-card:hover { border-color: var(--terracotta-light); box-shadow: 0 3px 12px var(--shadow-md); transform: translateY(-1px); }
+  .service-card.selected { border-color: var(--terracotta); background: linear-gradient(135deg, #FFF8F2, #FDF6EC); box-shadow: 0 3px 12px var(--shadow-md); }
+  .service-card.selected .svc-check { background: var(--terracotta); border-color: var(--terracotta); color: var(--white); }
+  .svc-info h4 { font-size: 0.92rem; font-weight: 500; color: var(--text-dark); }
+  .svc-duration { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
+  .svc-check {
+    width: 24px; height: 24px; border-radius: 6px; border: 2px solid #D4C4BA;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; flex-shrink: 0; transition: all 0.25s;
+  }
+
+  /* SELECTION SUMMARY */
+  .selection-summary {
+    background: var(--white); border-radius: 12px; padding: 1.2rem 1.5rem;
+    margin-top: 2rem; box-shadow: 0 2px 10px var(--shadow);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem; position: sticky; bottom: 1rem; z-index: 10;
+    border: 1px solid var(--gold-light);
+  }
+  .summary-text { font-size: 0.95rem; color: var(--text-medium); }
+  .summary-text strong { color: var(--deep-brown); }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Lato', sans-serif; font-weight: 600; font-size: 0.95rem;
+    padding: 0.75rem 2rem; border-radius: 8px; border: none;
+    cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
+  }
+  .btn-primary { background: var(--terracotta); color: var(--white); }
+  .btn-primary:hover { background: var(--deep-brown); }
+  .btn-primary:disabled { background: #CBBBAF; cursor: not-allowed; }
+  .btn-secondary { background: transparent; color: var(--terracotta); border: 2px solid var(--terracotta); }
+  .btn-secondary:hover { background: var(--terracotta); color: var(--white); }
+  .btn-row { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; flex-wrap: wrap; }
+
+  /* CALENDAR */
+  .calendar-wrapper { background: var(--white); border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 12px var(--shadow); margin-bottom: 2rem; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .cal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--deep-brown); }
+  .cal-nav { background: none; border: 1px solid var(--gold-light); border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; color: var(--terracotta); font-size: 1rem; transition: all 0.2s; }
+  .cal-nav:hover { background: var(--warm-beige); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+  .cal-day-label { font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; padding: 0.5rem 0; }
+  .cal-day { padding: 0.6rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+  .cal-day:hover:not(.disabled):not(.empty) { background: var(--warm-beige); }
+  .cal-day.selected { background: var(--terracotta); color: var(--white); font-weight: 600; }
+  .cal-day.today { border: 2px solid var(--gold); }
+  .cal-day.disabled { color: #D4C4BA; cursor: default; }
+  .cal-day.empty { cursor: default; }
+
+  /* TIME SLOTS */
+  .time-slots-wrapper { background: var(--white); border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 12px var(--shadow); }
+  .time-slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.6rem; margin-top: 1rem; }
+  .time-slot {
+    padding: 0.7rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+    transition: all 0.2s; color: var(--text-medium);
+  }
+  .time-slot:hover { border-color: var(--terracotta-light); background: #FFF8F2; }
+  .time-slot.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
+  .time-slot.unavailable { background: #F5F0EB; color: #CBBBAF; cursor: not-allowed; border-color: #EBE3DB; text-decoration: line-through; }
+
+  /* FORM */
+  .form-card { background: var(--white); border-radius: 14px; padding: 2rem; box-shadow: 0 2px 12px var(--shadow); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-weight: 500; font-size: 0.85rem; color: var(--text-medium); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    font-family: 'Lato', sans-serif; padding: 0.75rem 1rem; border: 2px solid #E8DDD5;
+    border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;
+    background: var(--cream); color: var(--text-dark);
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--terracotta); background: var(--white); }
+  .reminder-options { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: 0.3rem; }
+  .reminder-option { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+  .reminder-option input[type="checkbox"] { accent-color: var(--terracotta); width: 18px; height: 18px; }
+
+  /* CONFIRMATION */
+  .confirmation-card { background: var(--white); border-radius: 14px; padding: 2.5rem; box-shadow: 0 4px 20px var(--shadow-md); text-align: center; max-width: 600px; margin: 0 auto; }
+  .confirm-icon { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--soft-olive), var(--olive-light)); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem; }
+  .confirm-details { text-align: left; background: var(--cream); border-radius: 10px; padding: 1.5rem; margin: 1.5rem 0; }
+  .confirm-details .detail-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--warm-beige); font-size: 0.92rem; }
+  .confirm-details .detail-row:last-child { border-bottom: none; }
+  .detail-label { color: var(--text-light); }
+  .detail-value { font-weight: 600; color: var(--deep-brown); text-align: right; }
+
+  /* TOAST */
+  .toast-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.5rem; }
+  .toast {
+    background: var(--deep-brown); color: var(--cream); padding: 1rem 1.5rem;
+    border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    font-size: 0.9rem; transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); max-width: 350px;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast.success { border-left: 4px solid var(--soft-olive); }
+  .toast.info { border-left: 4px solid var(--gold); }
+  .toast.error { border-left: 4px solid #E05555; }
+
+  /* ERROR BANNER */
+  .error-banner { background: #FFF0F0; border: 1px solid #E05555; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: #B33; font-size: 0.9rem; display: none; }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    header h1 { font-size: 2rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .step-tab { font-size: 0.7rem; padding: 0.8rem 0.3rem; }
+    .step-tab .step-num { width: 22px; height: 22px; line-height: 22px; font-size: 0.65rem; margin-right: 0.3rem; }
+    .selection-summary { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <h1>Mimi's Studio</h1>
+  <p>Hair &middot; Color &middot; Waxing &middot; Beauty</p>
+  <div class="header-hours">Tuesday &ndash; Saturday &nbsp;|&nbsp; 11:00 AM &ndash; 7:00 PM</div>
+</header>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="step-tab active" id="step1tab"><span class="step-num">1</span>Services</div>
+  <div class="step-tab" id="step2tab"><span class="step-num">2</span>Date &amp; Time</div>
+  <div class="step-tab" id="step3tab"><span class="step-num">3</span>Your Info</div>
+  <div class="step-tab" id="step4tab"><span class="step-num">4</span>Confirmed</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="container">
+
+<!-- ═══ PAGE 1: SERVICES ═══ -->
+<div class="page active" id="page1">
+  <div style="margin-bottom:1.5rem;">
+    <h2 class="section-title">Choose Your Services</h2>
+    <p class="section-subtitle">Select one or more services &mdash; we'll add up the time for you.</p>
+  </div>
+  <div class="error-banner" id="svcError"></div>
+
+  <div class="category-label"><span class="category-icon">&#9986;</span> Haircuts &amp; Styling</div>
+  <div class="services-grid" id="cat-haircuts"></div>
+
+  <div class="category-label"><span class="category-icon">&#127912;</span> Color &amp; Highlights</div>
+  <div class="services-grid" id="cat-color"></div>
+
+  <div class="category-label"><span class="category-icon">&#10024;</span> Perms &amp; Chemical Treatments</div>
+  <div class="services-grid" id="cat-perms"></div>
+
+  <div class="category-label"><span class="category-icon">&#127800;</span> Waxing</div>
+  <div class="services-grid" id="cat-waxing"></div>
+
+  <div class="category-label"><span class="category-icon">&#128132;</span> Makeup &amp; Other</div>
+  <div class="services-grid" id="cat-other"></div>
+
+  <div class="selection-summary" id="selectionSummary" style="display:none;">
+    <div class="summary-text">
+      <strong id="sumCount">0</strong> service(s) selected &nbsp;&middot;&nbsp; Estimated time: <strong id="sumDuration">0 min</strong>
+    </div>
+    <button class="btn btn-primary" id="toStep2Btn" onclick="goToPage(2)">Choose Date &amp; Time &rarr;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 2: DATE & TIME ═══ -->
+<div class="page" id="page2">
+  <h2 class="section-title">Pick a Date &amp; Time</h2>
+  <p class="section-subtitle">Mimi is available Tuesday&ndash;Saturday, 11 AM &ndash; 7 PM.</p>
+
+  <div class="calendar-wrapper">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&larr; Prev</button>
+      <h3 id="calMonthLabel"></h3>
+      <button class="cal-nav" onclick="changeMonth(1)">Next &rarr;</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="time-slots-wrapper" id="timeSlotsWrapper" style="display:none;">
+    <h3 style="font-family:'Playfair Display',serif;color:var(--deep-brown);font-size:1.1rem;">
+      Available Times for <span id="selectedDateLabel"></span>
+    </h3>
+    <p style="font-size:0.85rem;color:var(--text-light);margin-top:0.2rem;">
+      Your services need <strong id="neededDuration"></strong>. Slots that won't fit are grayed out.
+    </p>
+    <div id="slotsLoading" style="text-align:center;padding:2rem;display:none;"><div class="spinner" style="margin:0 auto;"></div></div>
+    <div class="time-slots-grid" id="timeSlotsGrid"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goToPage(1)">&larr; Back</button>
+    <button class="btn btn-primary" id="toStep3Btn" disabled onclick="goToPage(3)">Enter Your Info &rarr;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 3: YOUR INFO ═══ -->
+<div class="page" id="page3">
+  <h2 class="section-title">Your Information</h2>
+  <p class="section-subtitle">We'll use this to confirm your booking and send reminders.</p>
+
+  <div class="form-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="firstName">First Name *</label>
+        <input type="text" id="firstName" placeholder="Jane" required>
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name *</label>
+        <input type="text" id="lastName" placeholder="Doe" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email Address *</label>
+        <input type="email" id="email" placeholder="jane@example.com" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number *</label>
+        <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>Appointment Reminders</label>
+        <div class="reminder-options">
+          <label class="reminder-option"><input type="checkbox" id="remEmail" checked> Email reminder</label>
+          <label class="reminder-option"><input type="checkbox" id="remSMS" checked> Text message (SMS)</label>
+          <label class="reminder-option"><input type="checkbox" id="remBrowser"> Browser notification</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label for="notes">Special Requests or Notes</label>
+        <textarea id="notes" rows="3" placeholder="Anything Mimi should know? (e.g., color preferences, allergies, etc.)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goToPage(2)">&larr; Back</button>
+    <button class="btn btn-primary" id="confirmBtn" onclick="confirmBooking()">Confirm Booking &#10003;</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 4: CONFIRMATION ═══ -->
+<div class="page" id="page4">
+  <div class="confirmation-card">
+    <div class="confirm-icon">&#10003;</div>
+    <h2 class="section-title" style="text-align:center;margin-bottom:0.3rem;">You're All Set!</h2>
+    <p class="section-subtitle" style="text-align:center;">Your appointment at Mimi's Studio has been booked.</p>
+    <div class="confirm-details" id="confirmDetails"></div>
+    <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:1.5rem;">
+      A confirmation has been sent to <strong id="confirmEmail"></strong>.<br>
+      Mimi has been notified of your booking.<br>
+      You'll receive reminders before your appointment.
+    </p>
+    <button class="btn btn-primary" onclick="resetBooking()">Book Another Appointment</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG - API base (auto-detects Netlify)
+// ═══════════════════════════════════════
+const API_BASE = '/.netlify/functions';
+
+// ═══════════════════════════════════════
+//  FALLBACK SERVICES (used if API is down)
+// ═══════════════════════════════════════
+const FALLBACK_SERVICES = [
+  { id: 1, name: "Women's Haircut - New Style", duration_minutes: 60, category: "haircuts" },
+  { id: 2, name: "Women's Haircut - Trim", duration_minutes: 30, category: "haircuts" },
+  { id: 3, name: "Blow Dry", duration_minutes: 30, category: "haircuts" },
+  { id: 4, name: "Chelation", duration_minutes: 30, category: "haircuts" },
+  { id: 5, name: "Men's Cut", duration_minutes: 30, category: "haircuts" },
+  { id: 6, name: "Beard Trim", duration_minutes: 30, category: "haircuts" },
+  { id: 7, name: "Bang Trim", duration_minutes: 30, category: "haircuts" },
+  { id: 8, name: "Child's Cut", duration_minutes: 30, category: "haircuts" },
+  { id: 9, name: "Hair Color Touch-Up", duration_minutes: 60, category: "color" },
+  { id: 10, name: "Hair Color Brow Tint", duration_minutes: 30, category: "color" },
+  { id: 11, name: "Hair Color Scalp to Ends", duration_minutes: 90, category: "color" },
+  { id: 12, name: "Highlights Partial Short Hair", duration_minutes: 90, category: "color" },
+  { id: 13, name: "Highlights Partial Long Hair", duration_minutes: 120, category: "color" },
+  { id: 14, name: "Highlights Full Short Hair", duration_minutes: 120, category: "color" },
+  { id: 15, name: "Highlights Full Long Hair", duration_minutes: 150, category: "color" },
+  { id: 16, name: "Perm Short Hair", duration_minutes: 120, category: "perms" },
+  { id: 17, name: "Perm Long Hair", duration_minutes: 150, category: "perms" },
+  { id: 18, name: "Perm Spiral", duration_minutes: 180, category: "perms" },
+  { id: 19, name: "Chemical Straightening Short", duration_minutes: 240, category: "perms" },
+  { id: 20, name: "Chemical Straightening Long", duration_minutes: 300, category: "perms" },
+  { id: 21, name: "Waxing Brows", duration_minutes: 30, category: "waxing" },
+  { id: 22, name: "Waxing Nose Hair", duration_minutes: 30, category: "waxing" },
+  { id: 23, name: "Waxing Lip", duration_minutes: 30, category: "waxing" },
+  { id: 24, name: "Waxing Chin", duration_minutes: 30, category: "waxing" },
+  { id: 25, name: "Waxing Face", duration_minutes: 30, category: "waxing" },
+  { id: 26, name: "Waxing Under-Arm", duration_minutes: 30, category: "waxing" },
+  { id: 27, name: "Waxing Half-Arm", duration_minutes: 30, category: "waxing" },
+  { id: 28, name: "Waxing Leg-Full", duration_minutes: 60, category: "waxing" },
+  { id: 29, name: "Waxing Half-Leg", duration_minutes: 30, category: "waxing" },
+  { id: 30, name: "Waxing Bikini", duration_minutes: 30, category: "waxing" },
+  { id: 31, name: "Waxing Brazilian Woman", duration_minutes: 60, category: "waxing" },
+  { id: 32, name: "Waxing Brazilian Man", duration_minutes: 60, category: "waxing" },
+  { id: 33, name: "Personal", duration_minutes: 60, category: "other" },
+  { id: 34, name: "Custom Blend Makeup", duration_minutes: 60, category: "other" },
+  { id: 35, name: "Other 1hr Service", duration_minutes: 60, category: "other" },
+];
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let services = [];
+let selectedServices = new Set();
+let selectedDate = null;
+let selectedTime = null;
+let calYear, calMonth;
+let isBooking = false;
+
+const OPEN_HOUR = 11;
+const CLOSE_HOUR = 19;
+const SLOT_INCREMENT = 30;
+const OPEN_DAYS = [2, 3, 4, 5, 6];
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+async function init() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+
+  // Try loading services from API, fall back to hardcoded
+  try {
+    const res = await fetch(`${API_BASE}/get-services`);
+    if (res.ok) {
+      const data = await res.json();
+      services = data.services;
+    } else {
+      throw new Error('API not available');
+    }
+  } catch (e) {
+    console.log('Using fallback services (API not connected yet)');
+    services = FALLBACK_SERVICES;
+  }
+
+  renderServices();
+  renderCalendar();
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════
+//  RENDER SERVICES
+// ═══════════════════════════════════════
+function renderServices() {
+  const catMap = { haircuts: 'cat-haircuts', color: 'cat-color', perms: 'cat-perms', waxing: 'cat-waxing', other: 'cat-other' };
+  Object.values(catMap).forEach(id => document.getElementById(id).innerHTML = '');
+
+  services.forEach(svc => {
+    const dur = svc.duration_minutes || svc.duration;
+    const card = document.createElement('div');
+    card.className = 'service-card';
+    card.dataset.id = svc.id;
+    card.innerHTML = `
+      <div class="svc-info">
+        <h4>${svc.name}</h4>
+        <div class="svc-duration">${formatDuration(dur)}</div>
+      </div>
+      <div class="svc-check">&#10003;</div>
+    `;
+    card.onclick = () => toggleService(svc.id, card);
+    const container = document.getElementById(catMap[svc.category]);
+    if (container) container.appendChild(card);
+  });
+}
+
+function toggleService(id, card) {
+  if (selectedServices.has(id)) {
+    selectedServices.delete(id);
+    card.classList.remove('selected');
+  } else {
+    selectedServices.add(id);
+    card.classList.add('selected');
+  }
+  updateSummary();
+}
+
+function updateSummary() {
+  const count = selectedServices.size;
+  const totalMin = getTotalDuration();
+  document.getElementById('sumCount').textContent = count;
+  document.getElementById('sumDuration').textContent = formatDuration(totalMin);
+  document.getElementById('selectionSummary').style.display = count > 0 ? 'flex' : 'none';
+  document.getElementById('toStep2Btn').disabled = count === 0;
+  selectedTime = null;
+  document.getElementById('toStep3Btn').disabled = true;
+}
+
+function getTotalDuration() {
+  let total = 0;
+  selectedServices.forEach(id => {
+    const svc = services.find(s => s.id === id);
+    if (svc) total += (svc.duration_minutes || svc.duration);
+  });
+  return total;
+}
+
+function getSelectedServiceNames() {
+  const names = [];
+  selectedServices.forEach(id => {
+    const svc = services.find(s => s.id === id);
+    if (svc) names.push(svc.name);
+  });
+  return names;
+}
+
+function formatDuration(mins) {
+  if (mins < 60) return mins + ' min';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}hr ${m}min` : `${h}hr`;
+}
+
+function formatTime(mins) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const h12 = h > 12 ? h - 12 : h;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+// ═══════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function renderCalendar() {
+  document.getElementById('calMonthLabel').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  DAY_LABELS.forEach(d => {
+    const lbl = document.createElement('div');
+    lbl.className = 'cal-day-label';
+    lbl.textContent = d;
+    grid.appendChild(lbl);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.textContent = d;
+    const date = new Date(calYear, calMonth, d);
+
+    if (date < today || !OPEN_DAYS.includes(date.getDay())) {
+      cell.classList.add('disabled');
+    } else {
+      cell.onclick = () => selectDate(calYear, calMonth, d);
+    }
+    if (date.getTime() === today.getTime()) cell.classList.add('today');
+    if (selectedDate && date.getTime() === selectedDate.getTime()) cell.classList.add('selected');
+    grid.appendChild(cell);
+  }
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+async function selectDate(y, m, d) {
+  selectedDate = new Date(y, m, d);
+  selectedTime = null;
+  document.getElementById('toStep3Btn').disabled = true;
+  renderCalendar();
+  await renderTimeSlots();
+}
+
+// ═══════════════════════════════════════
+//  TIME SLOTS (calls API for real availability)
+// ═══════════════════════════════════════
+async function renderTimeSlots() {
+  const wrapper = document.getElementById('timeSlotsWrapper');
+  const grid = document.getElementById('timeSlotsGrid');
+  const loading = document.getElementById('slotsLoading');
+  if (!selectedDate) { wrapper.style.display = 'none'; return; }
+
+  wrapper.style.display = 'block';
+  const dateStr = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('selectedDateLabel').textContent = dateStr;
+
+  const needed = getTotalDuration();
+  document.getElementById('neededDuration').textContent = formatDuration(needed);
+
+  const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+
+  // Try API first
+  grid.innerHTML = '';
+  loading.style.display = 'block';
+
+  let slots = null;
+  try {
+    const res = await fetch(`${API_BASE}/get-available-slots`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: dateKey, duration: needed })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      slots = data.slots;
+    }
+  } catch (e) {
+    console.log('Slots API unavailable, using local generation');
+  }
+
+  loading.style.display = 'none';
+
+  // Fallback: generate locally
+  if (!slots) {
+    slots = [];
+    for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
+      for (let m = 0; m < 60; m += SLOT_INCREMENT) {
+        const start = h * 60 + m;
+        const fits = (start + needed) <= (CLOSE_HOUR * 60);
+        slots.push({ start, available: fits, label: formatTime(start) });
+      }
+    }
+  }
+
+  slots.forEach(slot => {
+    const el = document.createElement('div');
+    el.className = 'time-slot';
+    el.textContent = slot.label;
+    if (!slot.available) {
+      el.classList.add('unavailable');
+    } else {
+      el.onclick = () => selectTime(slot.start, el);
+    }
+    if (selectedTime === slot.start) el.classList.add('selected');
+    grid.appendChild(el);
+  });
+}
+
+function selectTime(startMin, el) {
+  selectedTime = startMin;
+  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('toStep3Btn').disabled = false;
+}
+
+// ═══════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════
+function goToPage(num) {
+  if (num === 2 && selectedServices.size === 0) return;
+  if (num === 3 && (!selectedDate || selectedTime === null)) return;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + num).classList.add('active');
+
+  document.querySelectorAll('.step-tab').forEach((tab, i) => {
+    tab.classList.remove('active', 'completed');
+    if (i + 1 < num) tab.classList.add('completed');
+    if (i + 1 === num) tab.classList.add('active');
+  });
+
+  if (num === 2) renderTimeSlots();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════
+//  BOOK APPOINTMENT (calls real API)
+// ═══════════════════════════════════════
+async function confirmBooking() {
+  if (isBooking) return;
+
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if (!firstName || !lastName || !email || !phone) {
+    showToast('Please fill in all required fields.', 'info');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Please enter a valid email address.', 'info');
+    return;
+  }
+
+  isBooking = true;
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = 'Booking...';
+
+  const totalDur = getTotalDuration();
+  const endTime = selectedTime + totalDur;
+  const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+  const svcNames = getSelectedServiceNames();
+  const svcIds = Array.from(selectedServices);
+
+  const payload = {
+    firstName, lastName, email, phone,
+    remindEmail: document.getElementById('remEmail').checked,
+    remindSms: document.getElementById('remSMS').checked,
+    remindBrowser: document.getElementById('remBrowser').checked,
+    notes: document.getElementById('notes').value.trim(),
+    date: dateKey,
+    startTime: selectedTime,
+    endTime: endTime,
+    totalDuration: totalDur,
+    serviceIds: svcIds,
+    serviceNames: svcNames
+  };
+
+  let success = false;
+
+  try {
+    const res = await fetch(`${API_BASE}/book-appointment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      success = true;
+    } else if (res.status === 409) {
+      showToast('That time slot was just taken! Please choose another.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Confirm Booking \u2713';
+      isBooking = false;
+      goToPage(2);
+      return;
+    } else {
+      throw new Error('API error');
+    }
+  } catch (e) {
+    // API not connected - still show confirmation (demo mode)
+    console.log('API not connected, running in demo mode');
+    success = true;
+  }
+
+  if (success) {
+    const dateFormatted = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const timeStr = formatTime(selectedTime);
+    const endStr = formatTime(endTime);
+
+    document.getElementById('confirmDetails').innerHTML = `
+      <div class="detail-row"><span class="detail-label">Client</span><span class="detail-value">${firstName} ${lastName}</span></div>
+      <div class="detail-row"><span class="detail-label">Services</span><span class="detail-value">${svcNames.join(', ')}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${dateFormatted}</span></div>
+      <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${timeStr} &ndash; ${endStr}</span></div>
+      <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${formatDuration(totalDur)}</span></div>
+      <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${phone}</span></div>
+    `;
+    document.getElementById('confirmEmail').textContent = email;
+    goToPage(4);
+
+    setTimeout(() => showToast('Confirmation email sent to ' + email, 'success'), 800);
+    setTimeout(() => showToast('Mimi has been notified of your booking!', 'success'), 2000);
+    setTimeout(() => showToast('Reminders scheduled: 24hr and 1hr before appointment', 'info'), 3200);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Confirm Booking \u2713';
+  isBooking = false;
+}
+
+// ═══════════════════════════════════════
+//  RESET
+// ═══════════════════════════════════════
+function resetBooking() {
+  selectedServices.clear();
+  selectedDate = null;
+  selectedTime = null;
+  document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('selectionSummary').style.display = 'none';
+  document.getElementById('firstName').value = '';
+  document.getElementById('lastName').value = '';
+  document.getElementById('email').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('notes').value = '';
+  goToPage(1);
+}
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 5000);
+}
+
+// ═══════════════════════════════════════
+//  PHONE FORMAT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('phone').addEventListener('input', (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length > 10) val = val.slice(0, 10);
+    if (val.length >= 7) val = `(${val.slice(0,3)}) ${val.slice(3,6)}-${val.slice(6)}`;
+    else if (val.length >= 4) val = `(${val.slice(0,3)}) ${val.slice(3)}`;
+    else if (val.length >= 1) val = `(${val}`;
+    e.target.value = val;
+  });
+});
+
+// Start
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "mimis-studio-booking",
+  "version": "1.0.0",
+  "description": "Mimi's Studio - Hair Salon Booking Website",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "resend": "^2.1.0"
+  }
+}
