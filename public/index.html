@@ -70,7 +70,34 @@
   }
   header h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.3rem; position: relative; }
   header p { font-size: 1.05rem; font-weight: 300; opacity: 0.9; letter-spacing: 2px; text-transform: uppercase; position: relative; }
-  .header-hours { margin-top: 1rem; font-size: 0.9rem; opacity: 0.8; position: relative; }
+  /* FOOTER */
+  .site-footer {
+    background: linear-gradient(135deg, var(--deep-brown) 0%, #7A5240 100%);
+    color: var(--cream); text-align: center; padding: 2rem 1rem; margin-top: 2rem;
+  }
+  .footer-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
+  .footer-info { font-size: 0.95rem; opacity: 0.85; line-height: 1.8; }
+  .footer-info a { color: var(--gold-light); text-decoration: none; }
+  .footer-info a:hover { text-decoration: underline; }
+  .footer-hours { font-size: 0.85rem; opacity: 0.65; margin-top: 0.8rem; }
+
+  /* REMINDER PICKER */
+  .reminder-timing { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .reminder-timing-btn {
+    padding: 0.6rem 1.2rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    background: var(--white); cursor: pointer; font-family: 'Lato', sans-serif;
+    font-size: 0.9rem; font-weight: 500; color: var(--text-medium); transition: all 0.2s;
+  }
+  .reminder-timing-btn:hover { border-color: var(--terracotta-light); }
+  .reminder-timing-btn.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
+  .reminder-method { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .reminder-method-btn {
+    padding: 0.6rem 1.2rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    background: var(--white); cursor: pointer; font-family: 'Lato', sans-serif;
+    font-size: 0.9rem; font-weight: 500; color: var(--text-medium); transition: all 0.2s;
+  }
+  .reminder-method-btn:hover { border-color: var(--terracotta-light); }
+  .reminder-method-btn.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
 
   /* STEP BAR */
   .steps-bar { display: flex; justify-content: center; background: var(--warm-beige); border-bottom: 2px solid var(--gold-light); }
@@ -245,7 +272,6 @@
 <header>
   <h1>Mimi's Studio</h1>
   <p>Hair &middot; Color &middot; Waxing &middot; Beauty</p>
-  <div class="header-hours">Tuesday &ndash; Saturday &nbsp;|&nbsp; 11:00 AM &ndash; 7:00 PM</div>
 </header>
 
 <!-- STEPS -->
@@ -350,11 +376,22 @@
     </div>
     <div class="form-row">
       <div class="form-group full">
-        <label>Appointment Reminders</label>
-        <div class="reminder-options">
-          <label class="reminder-option"><input type="checkbox" id="remEmail" checked> Email reminder</label>
-          <label class="reminder-option"><input type="checkbox" id="remSMS" checked> Text message (SMS)</label>
-          <label class="reminder-option"><input type="checkbox" id="remBrowser"> Browser notification</label>
+        <label>Reminder Timing</label>
+        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem;">When would you like to be reminded?</p>
+        <div class="reminder-timing">
+          <button type="button" class="reminder-timing-btn selected" data-timing="6" onclick="selectReminderTiming(this)">6 hours before</button>
+          <button type="button" class="reminder-timing-btn" data-timing="12" onclick="selectReminderTiming(this)">12 hours before</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>Reminder Method</label>
+        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:0.5rem;">How would you like to be reminded?</p>
+        <div class="reminder-method">
+          <button type="button" class="reminder-method-btn selected" data-method="email" onclick="toggleReminderMethod(this)">Email</button>
+          <button type="button" class="reminder-method-btn" data-method="text" onclick="toggleReminderMethod(this)">Text (SMS)</button>
+          <button type="button" class="reminder-method-btn" data-method="both" onclick="toggleReminderMethod(this)">Both</button>
         </div>
       </div>
     </div>
@@ -389,6 +426,16 @@
 </div>
 
 </div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-title">Mimi's Studio</div>
+  <div class="footer-info">
+    <a href="tel:+17072924914">(707) 292-4914</a> &nbsp;&middot;&nbsp;
+    <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a>
+  </div>
+  <div class="footer-hours">Tuesday &ndash; Saturday &nbsp;|&nbsp; 11:00 AM &ndash; 7:00 PM</div>
+</footer>
 
 <script>
 // ═══════════════════════════════════════
@@ -446,6 +493,8 @@ let selectedDate = null;
 let selectedTime = null;
 let calYear, calMonth;
 let isBooking = false;
+let reminderTiming = '6'; // '6' or '12' hours
+let reminderMethod = 'email'; // 'email', 'text', or 'both'
 
 const OPEN_HOUR = 11;
 const CLOSE_HOUR = 19;
@@ -542,6 +591,21 @@ function getSelectedServiceNames() {
     if (svc) names.push(svc.name);
   });
   return names;
+}
+
+// ═══════════════════════════════════════
+//  REMINDER SELECTION
+// ═══════════════════════════════════════
+function selectReminderTiming(btn) {
+  document.querySelectorAll('.reminder-timing-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  reminderTiming = btn.dataset.timing;
+}
+
+function toggleReminderMethod(btn) {
+  document.querySelectorAll('.reminder-method-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  reminderMethod = btn.dataset.method;
 }
 
 function formatDuration(mins) {
@@ -744,9 +808,11 @@ async function confirmBooking() {
 
   const payload = {
     firstName, lastName, email, phone,
-    remindEmail: document.getElementById('remEmail').checked,
-    remindSms: document.getElementById('remSMS').checked,
-    remindBrowser: document.getElementById('remBrowser').checked,
+    reminderTiming: reminderTiming,
+    reminderMethod: reminderMethod,
+    remindEmail: (reminderMethod === 'email' || reminderMethod === 'both'),
+    remindSms: (reminderMethod === 'text' || reminderMethod === 'both'),
+    remindBrowser: false,
     notes: document.getElementById('notes').value.trim(),
     date: dateKey,
     startTime: selectedTime,
@@ -778,9 +844,12 @@ async function confirmBooking() {
       throw new Error('API error');
     }
   } catch (e) {
-    // API not connected - still show confirmation (demo mode)
-    console.log('API not connected, running in demo mode');
-    success = true;
+    console.error('Booking API error:', e);
+    showToast('Could not connect to booking system. Please call (707) 292-4914 to book.', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Confirm Booking \u2713';
+    isBooking = false;
+    return;
   }
 
   if (success) {
@@ -788,6 +857,7 @@ async function confirmBooking() {
     const timeStr = formatTime(selectedTime);
     const endStr = formatTime(endTime);
 
+    const reminderDesc = `${reminderTiming}hr before via ${reminderMethod === 'both' ? 'email & text' : reminderMethod}`;
     document.getElementById('confirmDetails').innerHTML = `
       <div class="detail-row"><span class="detail-label">Client</span><span class="detail-value">${firstName} ${lastName}</span></div>
       <div class="detail-row"><span class="detail-label">Services</span><span class="detail-value">${svcNames.join(', ')}</span></div>
@@ -795,13 +865,14 @@ async function confirmBooking() {
       <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${timeStr} &ndash; ${endStr}</span></div>
       <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${formatDuration(totalDur)}</span></div>
       <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">${phone}</span></div>
+      <div class="detail-row"><span class="detail-label">Reminder</span><span class="detail-value">${reminderDesc}</span></div>
     `;
     document.getElementById('confirmEmail').textContent = email;
     goToPage(4);
 
     setTimeout(() => showToast('Confirmation email sent to ' + email, 'success'), 800);
     setTimeout(() => showToast('Mimi has been notified of your booking!', 'success'), 2000);
-    setTimeout(() => showToast('Reminders scheduled: 24hr and 1hr before appointment', 'info'), 3200);
+    setTimeout(() => showToast(`Reminder set: ${reminderTiming}hr before via ${reminderMethod === 'both' ? 'email & text' : reminderMethod}`, 'info'), 3200);
   }
 
   btn.disabled = false;
@@ -816,6 +887,8 @@ function resetBooking() {
   selectedServices.clear();
   selectedDate = null;
   selectedTime = null;
+  reminderTiming = '6';
+  reminderMethod = 'email';
   document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
   document.getElementById('selectionSummary').style.display = 'none';
   document.getElementById('firstName').value = '';
@@ -823,6 +896,9 @@ function resetBooking() {
   document.getElementById('email').value = '';
   document.getElementById('phone').value = '';
   document.getElementById('notes').value = '';
+  // Reset reminder buttons
+  document.querySelectorAll('.reminder-timing-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
+  document.querySelectorAll('.reminder-method-btn').forEach((b, i) => b.classList.toggle('selected', i === 0));
   goToPage(1);
 }
 
