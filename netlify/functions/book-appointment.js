@@ -263,7 +263,7 @@ async function findExistingClient(firstName, lastName, email, phone) {
   return bestMatch;
 }
 
-// Add phone to client_phones if not already present (max 4)
+// Add phone to client_phones if not already present (max 5)
 async function addPhoneIfNew(clientId, phone) {
   const normalized = phone.replace(/\D/g, '');
   const { data: existing } = await supabase
@@ -274,7 +274,7 @@ async function addPhoneIfNew(clientId, phone) {
   const alreadyExists = (existing || []).some(p => p.phone.replace(/\D/g, '') === normalized);
   if (alreadyExists) return;
 
-  if ((existing || []).length >= 4) return; // Max 4 phones
+  if ((existing || []).length >= 5) return; // Max 5 phones
 
   await supabase.from('client_phones').insert({
     client_id: clientId,

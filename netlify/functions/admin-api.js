@@ -307,8 +307,8 @@ async function updateClient(clientId, updates) {
   if (updates.phones !== undefined) {
     // Delete existing phones
     await supabase.from("client_phones").delete().eq("client_id", clientId);
-    // Insert new phones (up to 4)
-    const phonesToInsert = updates.phones.slice(0, 4).map((p, i) => ({
+    // Insert new phones (up to 5)
+    const phonesToInsert = updates.phones.slice(0, 5).map((p, i) => ({
       client_id: clientId,
       phone: p.phone,
       label: p.label || (i === 0 ? "primary" : "other"),
@@ -432,14 +432,14 @@ async function mergeClients(targetClientId, sourceClientId) {
     .eq("id", sourceClientId);
   if (deleteErr) throw new Error(`Failed to delete source client: ${deleteErr.message}`);
 
-  // Enforce limits: keep max 4 phones and 5 emails on target
+  // Enforce limits: keep max 5 phones and 5 emails on target
   const { data: finalPhones } = await supabase
     .from("client_phones")
     .select("*")
     .eq("client_id", targetClientId)
     .order("created_at");
-  if (finalPhones && finalPhones.length > 4) {
-    const toDelete = finalPhones.slice(4).map(p => p.id);
+  if (finalPhones && finalPhones.length > 5) {
+    const toDelete = finalPhones.slice(5).map(p => p.id);
     await supabase.from("client_phones").delete().in("id", toDelete);
   }
 
