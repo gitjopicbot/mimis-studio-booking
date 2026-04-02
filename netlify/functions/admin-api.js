@@ -102,13 +102,25 @@ async function deleteAppointment(appointmentId) {
 }
 
 async function blockTime(date, startTime, endTime, reason) {
+  // Convert "HH:MM" strings to minutes from midnight (to match booking system format)
+  function timeToMinutes(t) {
+    if (typeof t === 'number') return t;
+    const [h, m] = String(t).split(':').map(Number);
+    return h * 60 + (m || 0);
+  }
+
+  const startMinutes = timeToMinutes(startTime);
+  const endMinutes = timeToMinutes(endTime);
+  const duration = endMinutes - startMinutes;
+
   const { data, error } = await supabase
     .from("appointments")
     .insert([{
       client_id: null,
       appointment_date: date,
-      start_time: startTime,
-      end_time: endTime,
+      start_time: startMinutes,
+      end_time: endMinutes,
+      total_duration: duration > 0 ? duration : 0,
       status: "blocked",
       notes: reason,
       created_at: new Date().toISOString(),
