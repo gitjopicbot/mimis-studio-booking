@@ -57,7 +57,7 @@ async function getAppointments() {
     .select(`
       *,
       clients (id, first_name, last_name, email, phone),
-      appointment_services (id, services (id, name, duration_minutes))
+      appointment_services (service_id, services (id, name, duration_minutes))
     `)
     .order("appointment_date", { ascending: false })
     .order("start_time", { ascending: false });
@@ -148,7 +148,7 @@ async function getDailySchedule(date) {
     .select(`
       *,
       clients (id, first_name, last_name, email, phone),
-      appointment_services (id, services (id, name, duration_minutes))
+      appointment_services (service_id, services (id, name, duration_minutes))
     `)
     .eq("appointment_date", date)
     .order("start_time", { ascending: true });
@@ -278,7 +278,7 @@ async function getClientAppointments(clientId) {
     .from("appointments")
     .select(`
       *,
-      appointment_services (id, services (id, name, duration_minutes))
+      appointment_services (service_id, services (id, name, duration_minutes))
     `)
     .eq("client_id", clientId)
     .order("appointment_date", { ascending: false })
@@ -459,7 +459,7 @@ async function mergeClients(targetClientId, sourceClientId) {
 // ─── CLEAR TEST DATA ──────────────────────────────────────
 
 async function clearTestData() {
-  await supabase.from("appointment_services").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await supabase.from("appointment_services").delete().neq("appointment_id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("appointments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("client_phones").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await supabase.from("client_emails").delete().neq("id", "00000000-0000-0000-0000-000000000000");
