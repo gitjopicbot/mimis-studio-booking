@@ -499,7 +499,6 @@ let reminderMethod = 'email'; // 'email', 'text', or 'both'
 const OPEN_HOUR = 11;
 const CLOSE_HOUR = 19;
 const SLOT_INCREMENT = 30;
-const OPEN_DAYS = [2, 3, 4, 5, 6];
 
 // ═══════════════════════════════════════
 //  INIT
@@ -629,6 +628,39 @@ function formatTime(mins) {
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+// Reference Saturday for alternating schedule: April 4, 2026 = WORKING
+const FIRST_WORKING_SATURDAY = new Date(2026, 3, 4); // April 4, 2026
+
+function isSaturdayWorking(date) {
+  // date is a Saturday (day === 6)
+  // April 4, 2026 is working. Every other Saturday alternates.
+  // Calculate weeks since April 4, 2026
+  const weeksSinceReference = Math.floor((date - FIRST_WORKING_SATURDAY) / (7 * 24 * 60 * 60 * 1000));
+  // Even weeks = working, odd weeks = off
+  return weeksSinceReference % 2 === 0;
+}
+
+function isBusinessDay(date) {
+  const dayOfWeek = date.getDay();
+
+  // Sunday (0) and Monday (1) are always closed
+  if (dayOfWeek === 0 || dayOfWeek === 1) {
+    return false;
+  }
+
+  // Tuesday (2), Wednesday (3), Thursday (4), Friday (5) are open
+  if (dayOfWeek >= 2 && dayOfWeek <= 5) {
+    return true;
+  }
+
+  // Saturday (6) - check alternating schedule
+  if (dayOfWeek === 6) {
+    return isSaturdayWorking(date);
+  }
+
+  return false;
+}
+
 function renderCalendar() {
   document.getElementById('calMonthLabel').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
   const grid = document.getElementById('calGrid');
@@ -657,7 +689,8 @@ function renderCalendar() {
     cell.textContent = d;
     const date = new Date(calYear, calMonth, d);
 
-    if (date < today || !OPEN_DAYS.includes(date.getDay())) {
+    // Disable if past date or not a business day
+    if (date < today || !isBusinessDay(date)) {
       cell.classList.add('disabled');
     } else {
       cell.onclick = () => selectDate(calYear, calMonth, d);

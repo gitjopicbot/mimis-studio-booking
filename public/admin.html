@@ -153,6 +153,31 @@
         .appt-history-item .appt-notes { font-size: 12px; color: var(--soft-olive); margin-top: 4px; font-style: italic; }
         .appt-history-item .appt-status { font-size: 11px; }
         .appt-notes-input { width: 100%; padding: 6px; border: 1px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; margin-top: 6px; }
+        .appt-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+        /* SLOT PICKER */
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin: 12px 0; }
+        .slot-btn { padding: 8px; border: 2px solid var(--gold); border-radius: 4px; background: white; color: var(--text-dark); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .slot-btn:hover { border-color: var(--terracotta); background: rgba(196,125,90,0.05); }
+        .slot-btn.selected { background: var(--terracotta); color: white; border-color: var(--terracotta); }
+        .slot-btn.unavailable { background: #eee; color: #999; cursor: not-allowed; border-color: #ccc; }
+
+        /* SERVICE MULTI-SELECT */
+        .service-list { max-height: 150px; overflow-y: auto; border: 1px solid var(--gold); border-radius: 4px; padding: 8px; background: white; }
+        .service-checkbox { display: flex; align-items: center; padding: 6px 0; }
+        .service-checkbox input { margin-right: 8px; }
+        .service-checkbox label { cursor: pointer; flex: 1; margin: 0; }
+
+        /* FORM SECTION IN MODAL */
+        .modal-form-group { margin-bottom: 16px; }
+        .modal-form-group label { display: block; font-weight: 600; color: var(--deep-brown); margin-bottom: 6px; font-size: 13px; }
+        .modal-form-group input[type="date"],
+        .modal-form-group select,
+        .modal-form-group textarea { width: 100%; padding: 8px; border: 1px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; }
+        .modal-form-group input:focus,
+        .modal-form-group select:focus,
+        .modal-form-group textarea:focus { outline: none; border-color: var(--terracotta); background-color: rgba(196,125,90,0.05); }
+        .modal-form-group textarea { resize: vertical; min-height: 60px; }
 
         /* MESSAGES */
         .message { padding: 15px; border-radius: 4px; margin-bottom: 20px; display: none; }
@@ -393,6 +418,32 @@
         </div>
     </div>
 
+    <!-- MODAL: BOOK APPOINTMENT FROM ADMIN -->
+    <div class="modal" id="bookAppointmentModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeBookAppointmentModal()">&times;</button>
+            <div class="modal-header">Book Appointment</div>
+            <div id="bookAppointmentContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBookAppointmentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitBookAppointment()">Book Appointment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT APPOINTMENT (Enhanced) -->
+    <div class="modal" id="editAppointmentModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeEditAppointmentModal()">&times;</button>
+            <div class="modal-header">Edit Appointment</div>
+            <div id="editAppointmentContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditAppointmentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEditAppointment()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <p><strong>Mimi's Studio</strong></p>
         <p>Phone: <a href="tel:+17072924914">(707) 292-4914</a> | Email: <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a></p>
@@ -404,10 +455,12 @@
         let authToken = null;
         let allAppointments = [];
         let allClients = [];
+        let allServices = [];
         let currentEditingAppointmentId = null;
         let currentEditingNotesAppointmentId = null;
         let currentEditingClientId = null;
         let currentClientDetailId = null;
+        let currentBookingClientId = null;
         let mergeMode = false;
         let mergeSourceId = null;
         let mergeTargetId = null;
@@ -571,11 +624,11 @@
                         </div>
                     </div>
                     <div class="action-buttons">
-                        <button class="btn btn-primary btn-small" onclick="openEditModal('${a.id}')">Reschedule</button>
+                        <button class="btn btn-primary btn-small" onclick="openEditAppointmentModal('${a.id}')">Edit</button>
                         <button class="btn btn-secondary btn-small" onclick="markStatus('${a.id}','completed')">Completed</button>
                         <button class="btn btn-warning btn-small" onclick="markStatus('${a.id}','no_show')">No-Show</button>
                         <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Notes</button>
-                        <button class="btn btn-danger btn-small" onclick="cancelAppt('${a.id}')">Cancel</button>
+                        <button class="btn btn-danger btn-small" onclick="cancelApptWithConfirm('${a.id}')">Cancel</button>
                     </div>
                 </div>
             `).join('');
@@ -627,9 +680,9 @@
                 <td><span class="status-badge status-${a.status}">${a.status}</span></td>
                 <td><small>${a.notes ? '&#128221; ' + truncate(a.notes,40) : ''}</small>${a.adminNotes ? '<br><small style="color:var(--terracotta);">&#9998; ' + truncate(a.adminNotes,40) + '</small>' : ''}</td>
                 <td><div class="action-buttons">
-                    ${showActions ? `<button class="btn btn-primary btn-small" onclick="openEditModal('${a.id}')">Edit</button>` : ''}
+                    ${showActions ? `<button class="btn btn-primary btn-small" onclick="openEditAppointmentModal('${a.id}')">Edit</button>` : ''}
                     <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Notes</button>
-                    ${showActions ? `<button class="btn btn-danger btn-small" onclick="cancelAppt('${a.id}')">Cancel</button>` : `<button class="btn btn-danger btn-small" onclick="deleteAppt('${a.id}')">Delete</button>`}
+                    ${showActions ? `<button class="btn btn-danger btn-small" onclick="cancelApptWithConfirm('${a.id}')">Cancel</button>` : `<button class="btn btn-danger btn-small" onclick="deleteAppt('${a.id}')">Delete</button>`}
                 </div></td>
             </tr>`).join('');
             html += '</tbody></table>';
@@ -718,12 +771,13 @@
                     emails: clientData.emails || [],
                 };
 
-                const appts = normalizeAppointments(appointmentsData.map(a => ({
+                const appts = appointmentsData.map(a => ({
                     ...a,
                     clients: { first_name: clientData.first_name, last_name: clientData.last_name, email: clientData.email, phone: clientData.phone }
-                })));
+                }));
+                const normalizedAppts = normalizeAppointments(appts);
 
-                detailContent.innerHTML = renderClientDetailPanel(client, appts);
+                detailContent.innerHTML = renderClientDetailPanel(client, normalizedAppts);
             } catch (error) {
                 detailContent.innerHTML = `<div class="empty-state"><p>Error loading client: ${error.message}</p></div>`;
             }
@@ -746,8 +800,10 @@
                             <div class="appt-services">${a.services}</div>
                             ${a.notes ? `<div class="appt-notes">Client: ${a.notes}</div>` : ''}
                             ${a.adminNotes ? `<div class="appt-notes" style="color:var(--terracotta);">Admin: ${a.adminNotes}</div>` : ''}
-                            <div style="margin-top:6px;">
-                                <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Edit Notes</button>
+                            <div class="appt-actions">
+                                <button class="btn btn-secondary btn-small" onclick="openEditAppointmentModal('${a.id}')">Edit</button>
+                                <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Notes</button>
+                                <button class="btn btn-danger btn-small" onclick="cancelApptWithConfirm('${a.id}')">Cancel</button>
                             </div>
                         </div>
                         <div><span class="status-badge status-${a.status}">${a.status}</span></div>
@@ -759,7 +815,8 @@
             <div class="client-detail-panel">
                 <div class="client-detail-header">
                     <h2>${client.name}</h2>
-                    <div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-small" style="background:var(--terracotta);color:white;" onclick="openBookAppointmentModal('${client.id}')">Book Appointment</button>
                         <button class="btn btn-small" style="background:var(--gold);color:var(--deep-brown);" onclick="openEditClientModal('${client.id}')">Edit Client</button>
                     </div>
                 </div>
@@ -1156,6 +1213,303 @@
             const el = document.getElementById('errorMessage');
             el.textContent = msg; el.className = 'message error';
             setTimeout(() => el.className = 'message', 5000);
+        }
+
+        // ═══ BOOK APPOINTMENT MODAL ═══
+        async function openBookAppointmentModal(clientId) {
+            currentBookingClientId = clientId;
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            // Fetch services
+            try {
+                const response = await fetch('/.netlify/functions/get-services');
+                const services = await response.json();
+                allServices = Array.isArray(services) ? services : [];
+            } catch (e) {
+                console.error('Failed to fetch services:', e);
+                allServices = [];
+            }
+
+            // Build service list HTML
+            let servicesHtml = '';
+            if (allServices.length > 0) {
+                servicesHtml = `<div class="service-list">
+                    ${allServices.map((s, idx) => `
+                        <div class="service-checkbox">
+                            <input type="checkbox" id="bookService${idx}" value="${s.id}" data-duration="${s.duration_minutes || 30}">
+                            <label for="bookService${idx}">${s.name} (${s.duration_minutes || 30}min)</label>
+                        </div>
+                    `).join('')}
+                </div>`;
+            } else {
+                servicesHtml = '<div style="color: #999; padding: 8px;">No services available</div>';
+            }
+
+            document.getElementById('bookAppointmentContent').innerHTML = `
+                <div class="modal-form-group">
+                    <label>Client</label>
+                    <input type="text" value="${client.name}" readonly style="background: #f5f5f5;">
+                </div>
+                <div class="modal-form-group">
+                    <label for="bookDate">Date *</label>
+                    <input type="date" id="bookDate" min="${new Date().toISOString().split('T')[0]}">
+                </div>
+                <div class="modal-form-group">
+                    <label>Services *</label>
+                    ${servicesHtml}
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(196,125,90,0.1); border-radius: 4px;">
+                        <strong>Total Duration:</strong> <span id="bookTotalDuration">0</span> minutes
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label for="bookTimeSlot">Time Slot *</label>
+                    <div id="bookTimeSlots" class="slot-grid">
+                        <p style="color: #999;">Select a date and services first</p>
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label>
+                        <input type="checkbox" id="bookOverrideHours">
+                        Override hours (use any time 8 AM - 9 PM)
+                    </label>
+                </div>
+                <div class="modal-form-group">
+                    <label for="bookNotes">Notes</label>
+                    <textarea id="bookNotes" placeholder="Optional appointment notes..."></textarea>
+                </div>
+            `;
+
+            // Add event listeners
+            document.getElementById('bookDate').addEventListener('change', refreshBookSlots);
+            document.getElementById('bookOverrideHours').addEventListener('change', refreshBookSlots);
+            document.querySelectorAll('input[type="checkbox"][id^="bookService"]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateBookDuration();
+                    refreshBookSlots();
+                });
+            });
+
+            document.getElementById('bookAppointmentModal').classList.add('active');
+        }
+
+        function closeBookAppointmentModal() {
+            document.getElementById('bookAppointmentModal').classList.remove('active');
+            currentBookingClientId = null;
+        }
+
+        function updateBookDuration() {
+            let total = 0;
+            document.querySelectorAll('input[type="checkbox"][id^="bookService"]:checked').forEach(cb => {
+                total += parseInt(cb.dataset.duration || 30);
+            });
+            document.getElementById('bookTotalDuration').textContent = total || 0;
+        }
+
+        async function refreshBookSlots() {
+            const date = document.getElementById('bookDate').value;
+            const override = document.getElementById('bookOverrideHours').checked;
+            const durationMins = parseInt(document.getElementById('bookTotalDuration').textContent);
+
+            if (!date || durationMins === 0) {
+                document.getElementById('bookTimeSlots').innerHTML = '<p style="color: #999;">Select a date and services first</p>';
+                return;
+            }
+
+            // Get available slots
+            try {
+                let slots = [];
+                if (override) {
+                    // Generate all slots from 8 AM to 9 PM (assuming 30-min intervals)
+                    const interval = 30;
+                    for (let hour = 8; hour < 21; hour++) {
+                        for (let min = 0; min < 60; min += interval) {
+                            const startMins = hour * 60 + min;
+                            const endMins = startMins + durationMins;
+                            if (endMins <= 21 * 60) {
+                                slots.push({
+                                    startTime: startMins,
+                                    endTime: endMins,
+                                    available: true
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    // Fetch actual available slots
+                    const response = await fetch('/.netlify/functions/get-available-slots', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ date, duration: durationMins })
+                    });
+                    const data = await response.json();
+                    slots = Array.isArray(data) ? data : (data.slots || []);
+                }
+
+                // Render slots
+                const slotsHtml = slots.map((slot, idx) => `
+                    <button type="button" class="slot-btn ${slot.available ? '' : 'unavailable'}"
+                            id="slot${idx}"
+                            data-start="${slot.startTime}"
+                            data-end="${slot.endTime}"
+                            ${slot.available ? `onclick="selectBookSlot(${slot.startTime}, ${slot.endTime}, ${idx})"` : 'disabled'}>
+                        ${fmtTime(slot.startTime)}
+                    </button>
+                `).join('');
+
+                document.getElementById('bookTimeSlots').innerHTML = slotsHtml;
+            } catch (e) {
+                console.error('Failed to fetch slots:', e);
+                document.getElementById('bookTimeSlots').innerHTML = '<p style="color: red;">Failed to load available slots</p>';
+            }
+        }
+
+        function selectBookSlot(startTime, endTime, idx) {
+            document.querySelectorAll('#bookTimeSlots .slot-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById(`slot${idx}`).classList.add('selected');
+            document.getElementById(`slot${idx}`).dataset.selectedStart = startTime;
+            document.getElementById(`slot${idx}`).dataset.selectedEnd = endTime;
+        }
+
+        async function submitBookAppointment() {
+            const clientId = currentBookingClientId;
+            const date = document.getElementById('bookDate').value;
+            const notes = document.getElementById('bookNotes').value;
+            const selectedSlot = document.querySelector('#bookTimeSlots .slot-btn.selected');
+
+            if (!date || !selectedSlot) {
+                showError('Please select a date and time slot');
+                return;
+            }
+
+            const startTime = parseInt(selectedSlot.dataset.selectedStart);
+            const endTime = parseInt(selectedSlot.dataset.selectedEnd);
+            const totalDuration = endTime - startTime;
+
+            const serviceIds = Array.from(document.querySelectorAll('input[type="checkbox"][id^="bookService"]:checked'))
+                .map(cb => cb.value);
+
+            if (serviceIds.length === 0) {
+                showError('Please select at least one service');
+                return;
+            }
+
+            try {
+                await apiCall('adminBookAppointment', {
+                    clientId,
+                    date,
+                    startTime,
+                    endTime,
+                    totalDuration,
+                    serviceIds,
+                    notes,
+                    adminNotes: 'Booked by admin'
+                });
+                showSuccess('Appointment booked successfully');
+                closeBookAppointmentModal();
+                await loadAllData();
+                if (currentClientDetailId === clientId) {
+                    openClientDetail(clientId);
+                }
+            } catch (error) {
+                showError('Failed to book appointment: ' + error.message);
+            }
+        }
+
+        // ═══ EDIT APPOINTMENT MODAL (Enhanced) ═══
+        async function openEditAppointmentModal(apptId) {
+            const appt = allAppointments.find(a => a.id === apptId);
+            if (!appt) return;
+
+            // Fetch services
+            try {
+                const response = await fetch('/.netlify/functions/get-services');
+                const services = await response.json();
+                allServices = Array.isArray(services) ? services : [];
+            } catch (e) {
+                console.error('Failed to fetch services:', e);
+                allServices = [];
+            }
+
+            const startH = Math.floor(appt.startTime / 60);
+            const startM = appt.startTime % 60;
+            const timeVal = `${String(startH).padStart(2,'0')}:${String(startM).padStart(2,'0')}`;
+
+            document.getElementById('editAppointmentContent').innerHTML = `
+                <div class="modal-form-group">
+                    <label for="editApptDate">Date</label>
+                    <input type="date" id="editApptDate" value="${appt.date}">
+                </div>
+                <div class="modal-form-group">
+                    <label for="editApptTime">Time</label>
+                    <input type="time" id="editApptTime" value="${timeVal}">
+                </div>
+                <div class="modal-form-group">
+                    <label for="editApptStatus">Status</label>
+                    <select id="editApptStatus">
+                        <option value="confirmed" ${appt.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                        <option value="completed" ${appt.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        <option value="cancelled" ${appt.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        <option value="no_show" ${appt.status === 'no_show' ? 'selected' : ''}>No-Show</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label for="editApptNotes">Client Notes</label>
+                    <textarea id="editApptNotes">${appt.notes || ''}</textarea>
+                </div>
+                <div class="modal-form-group">
+                    <label for="editApptAdminNotes">Admin Notes</label>
+                    <textarea id="editApptAdminNotes">${appt.adminNotes || ''}</textarea>
+                </div>
+            `;
+
+            currentEditingAppointmentId = apptId;
+            document.getElementById('editAppointmentModal').classList.add('active');
+        }
+
+        function closeEditAppointmentModal() {
+            document.getElementById('editAppointmentModal').classList.remove('active');
+            currentEditingAppointmentId = null;
+        }
+
+        async function submitEditAppointment() {
+            const apptId = currentEditingAppointmentId;
+            const date = document.getElementById('editApptDate').value;
+            const timeParts = document.getElementById('editApptTime').value.split(':');
+            const startTime = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+            const status = document.getElementById('editApptStatus').value;
+            const notes = document.getElementById('editApptNotes').value;
+            const adminNotes = document.getElementById('editApptAdminNotes').value;
+
+            const appt = allAppointments.find(a => a.id === apptId);
+            const duration = appt ? (appt.endTime - appt.startTime) : 60;
+
+            try {
+                await apiCall('updateAppointment', {
+                    appointmentId: apptId,
+                    updates: {
+                        appointment_date: date,
+                        start_time: startTime,
+                        end_time: startTime + duration,
+                        status,
+                        notes,
+                        admin_notes: adminNotes
+                    }
+                });
+                showSuccess('Appointment updated');
+                closeEditAppointmentModal();
+                await loadAllData();
+                if (currentClientDetailId) {
+                    openClientDetail(currentClientDetailId);
+                }
+            } catch (error) {
+                showError('Failed to update appointment: ' + error.message);
+            }
+        }
+
+        function cancelApptWithConfirm(apptId) {
+            if (!confirm('Cancel this appointment?')) return;
+            cancelAppt(apptId);
         }
     </script>
 </body>
