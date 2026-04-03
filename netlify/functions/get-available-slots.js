@@ -12,7 +12,7 @@ const REFERENCE_DATE = new Date('2026-04-04'); // First working Saturday
 const HOURS = {
   0: null, // Sunday: CLOSED
   1: null, // Monday: CLOSED
-  2: [150, 360], // Tuesday: 2:30 PM - 6:00 PM (870 - 1080 mins) - corrected to 150 = 2:30 PM
+  2: [870, 1080], // Tuesday: 2:30 PM - 6:00 PM
   3: [660, 1080], // Wednesday: 11:00 AM - 6:00 PM
   4: [660, 1080], // Thursday: 11:00 AM - 6:00 PM
   5: [660, 1080], // Friday: 11:00 AM - 6:00 PM
@@ -152,9 +152,11 @@ function applyContiguousLogic(allSlots, appointments, durationMin, closeMin) {
       appt => slotStart < appt.end_time && slotEnd > appt.start_time
     );
 
-    // Check if slot falls within available windows
+    // Check if slot START falls within available windows
+    // (only the start time must be in the window — duration just needs to fit before closing)
+    // This allows longer appointments to be booked in the slot right after an existing one
     const inAvailableWindow = mergedWindows.some(
-      win => slotStart >= win.start && slotEnd <= win.end
+      win => slotStart >= win.start && slotStart < win.end
     );
 
     const available = fitsBefore && !overlapsAppt && inAvailableWindow;
