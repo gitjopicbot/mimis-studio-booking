@@ -35,6 +35,18 @@ exports.handler = async (event) => {
       };
     }
 
+    // 0. Enforce 16-hour advance booking cutoff for public bookings
+    const appointmentDateTime = new Date(`${date}T00:00:00`);
+    appointmentDateTime.setMinutes(startTime);
+    const cutoffTime = new Date(Date.now() + 16 * 60 * 60 * 1000);
+    if (appointmentDateTime < cutoffTime) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: 'Appointments must be booked at least 16 hours in advance. Please call Mimi directly for last-minute bookings.' }),
+      };
+    }
+
     // 1. Check for double-booking
     const { data: conflicts } = await supabase
       .from('appointments')
