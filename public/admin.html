@@ -1224,8 +1224,8 @@
             // Fetch services
             try {
                 const response = await fetch('/.netlify/functions/get-services');
-                const services = await response.json();
-                allServices = Array.isArray(services) ? services : [];
+                const result = await response.json();
+                allServices = Array.isArray(result) ? result : (result.services || []);
             } catch (e) {
                 console.error('Failed to fetch services:', e);
                 allServices = [];
@@ -1330,7 +1330,8 @@
                                 slots.push({
                                     startTime: startMins,
                                     endTime: endMins,
-                                    available: true
+                                    available: true,
+                                    label: fmtTime(startMins)
                                 });
                             }
                         }
@@ -1343,7 +1344,14 @@
                         body: JSON.stringify({ date, duration: durationMins })
                     });
                     const data = await response.json();
-                    slots = Array.isArray(data) ? data : (data.slots || []);
+                    const rawSlots = Array.isArray(data) ? data : (data.slots || []);
+                    // Map API response {start, label, available} to {startTime, endTime, available}
+                    slots = rawSlots.map(s => ({
+                        startTime: s.start,
+                        endTime: s.start + durationMins,
+                        available: s.available,
+                        label: s.label
+                    }));
                 }
 
                 // Render slots
@@ -1353,7 +1361,7 @@
                             data-start="${slot.startTime}"
                             data-end="${slot.endTime}"
                             ${slot.available ? `onclick="selectBookSlot(${slot.startTime}, ${slot.endTime}, ${idx})"` : 'disabled'}>
-                        ${fmtTime(slot.startTime)}
+                        ${slot.label || fmtTime(slot.startTime)}
                     </button>
                 `).join('');
 
@@ -1424,8 +1432,8 @@
             // Fetch services
             try {
                 const response = await fetch('/.netlify/functions/get-services');
-                const services = await response.json();
-                allServices = Array.isArray(services) ? services : [];
+                const result = await response.json();
+                allServices = Array.isArray(result) ? result : (result.services || []);
             } catch (e) {
                 console.error('Failed to fetch services:', e);
                 allServices = [];
