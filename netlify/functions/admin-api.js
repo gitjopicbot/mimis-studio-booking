@@ -6,7 +6,8 @@
  * Actions:
  *   getAppointments, updateAppointment, deleteAppointment, blockTime,
  *   getClients, searchClients, getClientDetail, getClientAppointments,
- *   updateClient, mergeClients, addAdminNote, clearTestData, getDailySchedule
+ *   updateClient, mergeClients, addAdminNote, clearTestData, getDailySchedule,
+ *   adminBookAppointment
  */
 
 const { createClient } = require("@supabase/supabase-js");
@@ -140,6 +141,60 @@ async function addAdminNote(appointmentId, adminNotes) {
   if (error) throw new Error(`Failed to add admin note: ${error.message}`);
   if (!data || data.length === 0) throw new Error("Appointment not found");
   return data[0];
+}
+
+async function adminBookAppointment(clientId, date, startTime, endTime, totalDuration, serviceIds, notes, adminNotes) {
+  // Create appointment record
+  const { data: apptData, error: apptError } = await supabase
+    .from("appointments")
+    .insert([{
+      client_id: clientId,
+      appointment_date: date,
+      start_time: startTime,
+      end_time: endTime,
+      total_duration: totalDuration,
+      status: "confirmed",
+      notes: notes || "",
+      admin_notes: adminNotes || "",
+      created_at: new Date().toISOString(),
+    }])
+    .select();
+
+  if (apptError) throw new Error(`Failed to create appointment: ${apptError.message}`);
+  if (!apptData || apptData.length === 0) throw new Error("Failed to create appointment");
+
+  const appointmentId = apptData[0].id;
+
+  // Link services
+  if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
+    const servicesToInsert = serviceIds.map((serviceId) => ({
+      appointment_id: appointmentId,
+      service_id: serviceId,
+    }));
+
+    const { error: servicesError } = await supabase
+      .from("appointment_services")
+      .insert(servicesToInsert);
+
+    if (servicesError) {
+      // Clean up the appointment if service insertion fails
+      await supabase.from("appointments").delete().eq("id", appointmentId);
+      throw new Error(`Failed to link services: ${servicesError.message}`);
+    }
+  }
+
+  // Return the created appointment with services
+  const { data: fullAppt, error: fetchError } = await supabase
+    .from("appointments")
+    .select(`
+      *,
+      appointment_services (service_id, services (id, name, duration_minutes))
+    `)
+    .eq("id", appointmentId)
+    .single();
+
+  if (fetchError) throw new Error(`Failed to fetch created appointment: ${fetchError.message}`);
+  return fullAppt;
 }
 
 async function getDailySchedule(date) {
@@ -561,6 +616,20 @@ exports.handler = async (event) => {
       case "getDailySchedule":
         if (!params.date) return errorResponse(400, "Missing date parameter");
         result = await getDailySchedule(params.date);
+        break;
+      case "adminBookAppointment":
+        if (!params.clientId || !params.date || params.startTime === undefined || params.endTime === undefined || !params.totalDuration)
+          return errorResponse(400, "Missing required parameters: clientId, date, startTime, endTime, totalDuration");
+        result = await adminBookAppointment(
+          params.clientId,
+          params.date,
+          params.startTime,
+          params.endTime,
+          params.totalDuration,
+          params.serviceIds || [],
+          params.notes || "",
+          params.adminNotes || ""
+        );
         break;
       default:
         return errorResponse(400, `Unknown action: ${action}`);
