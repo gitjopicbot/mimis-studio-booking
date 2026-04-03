@@ -160,28 +160,47 @@ async function getDailySchedule(date) {
 
 // Get all clients with appointment counts, phones, emails
 async function getClients() {
-  const { data: clients, error } = await supabase.from("clients").select("*");
-  if (error) throw new Error(`Failed to fetch clients: ${error.message}`);
+  // Bulk-fetch everything in 4 queries instead of 3 per client
+  const [clientsRes, phonesRes, emailsRes, apptsRes] = await Promise.all([
+    supabase.from("clients").select("*"),
+    supabase.from("client_phones").select("*").order("created_at"),
+    supabase.from("client_emails").select("*").order("created_at"),
+    supabase.from("appointments").select("client_id"),
+  ]);
 
-  // Fetch phones, emails, and appointment counts in parallel
-  const enriched = await Promise.all(
-    clients.map(async (client) => {
-      const [phonesRes, emailsRes, countRes] = await Promise.all([
-        supabase.from("client_phones").select("*").eq("client_id", client.id).order("created_at"),
-        supabase.from("client_emails").select("*").eq("client_id", client.id).order("created_at"),
-        supabase.from("appointments").select("*", { count: "exact", head: true }).eq("client_id", client.id),
-      ]);
+  if (clientsRes.error) throw new Error(`Failed to fetch clients: ${clientsRes.error.message}`);
 
-      return {
-        ...client,
-        phones: phonesRes.data || [],
-        emails: emailsRes.data || [],
-        appointment_count: countRes.count || 0,
-      };
-    })
-  );
+  const clients = clientsRes.data;
+  const allPhones = phonesRes.data || [];
+  const allEmails = emailsRes.data || [];
+  const allAppts = apptsRes.data || [];
 
-  return enriched;
+  // Index phones and emails by client_id
+  const phonesByClient = {};
+  for (const p of allPhones) {
+    if (!phonesByClient[p.client_id]) phonesByClient[p.client_id] = [];
+    phonesByClient[p.client_id].push(p);
+  }
+
+  const emailsByClient = {};
+  for (const e of allEmails) {
+    if (!emailsByClient[e.client_id]) emailsByClient[e.client_id] = [];
+    emailsByClient[e.client_id].push(e);
+  }
+
+  // Count appointments per client
+  const apptCountByClient = {};
+  for (const a of allAppts) {
+    apptCountByClient[a.client_id] = (apptCountByClient[a.client_id] || 0) + 1;
+  }
+
+  // Enrich clients in memory
+  return clients.map((client) => ({
+    ...client,
+    phones: phonesByClient[client.id] || [],
+    emails: emailsByClient[client.id] || [],
+    appointment_count: apptCountByClient[client.id] || 0,
+  }));
 }
 
 // Search clients by name, phone, or email
