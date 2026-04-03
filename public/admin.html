@@ -666,7 +666,7 @@
         function renderTodaySchedule() {
             const today = new Date().toISOString().split('T')[0];
             const todayAppts = allAppointments
-                .filter(a => a.date === today && a.status !== 'blocked')
+                .filter(a => a.date === today && a.status !== 'blocked' && a.status !== 'cancelled')
                 .sort((a, b) => a.startTime - b.startTime);
             const content = document.getElementById('todayContent');
             if (todayAppts.length === 0) { content.innerHTML = '<div class="empty-state"><p>No appointments scheduled for today.</p></div>'; return; }
@@ -745,7 +745,7 @@
             const monthKey = `${adminCalYear}-${String(adminCalMonth + 1).padStart(2, '0')}`;
             const apptsByDate = {};
             allAppointments.forEach(a => {
-                if (a.date && a.date.startsWith(monthKey)) {
+                if (a.date && a.date.startsWith(monthKey) && a.status !== 'cancelled') {
                     if (!apptsByDate[a.date]) apptsByDate[a.date] = [];
                     apptsByDate[a.date].push(a);
                 }
@@ -828,7 +828,7 @@
             const dateObj = new Date(dateStr + 'T12:00:00');
             label.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-            const dayAppts = allAppointments.filter(a => a.date === dateStr).sort((a, b) => a.startTime - b.startTime);
+            const dayAppts = allAppointments.filter(a => a.date === dateStr && a.status !== 'cancelled').sort((a, b) => a.startTime - b.startTime);
 
             if (dayAppts.length === 0) {
                 content.innerHTML = '<p style="color: var(--text-light); padding: 12px;">No appointments scheduled for this day.</p>';
@@ -1283,12 +1283,11 @@
 
         // ═══ APPOINTMENT ACTIONS ═══
         async function cancelAppt(id) {
-            if (!confirm('Cancel this appointment?')) return;
             try {
-                await apiCall('updateAppointment', { appointmentId: id, updates: { status: 'cancelled' } });
-                showSuccess('Appointment cancelled');
+                await apiCall('deleteAppointment', { appointmentId: id });
+                showSuccess('Appointment cancelled and removed');
                 await loadAllData();
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error(e); showError('Failed to cancel appointment'); }
         }
 
         async function markStatus(id, status) {
@@ -1727,7 +1726,7 @@
         }
 
         function cancelApptWithConfirm(apptId) {
-            if (!confirm('Cancel this appointment?')) return;
+            if (!confirm('Cancel and remove this appointment? This cannot be undone.')) return;
             cancelAppt(apptId);
         }
     </script>
