@@ -168,6 +168,29 @@
         .service-checkbox input { margin-right: 8px; }
         .service-checkbox label { cursor: pointer; flex: 1; margin: 0; }
 
+        /* Admin Calendar */
+        .admin-calendar-wrapper { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .admin-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .admin-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .admin-cal-day-label { text-align: center; font-weight: 700; font-size: 12px; color: var(--text-light); padding: 8px 0; text-transform: uppercase; }
+        .admin-cal-day { min-height: 80px; background: var(--cream); border: 1px solid #e8ddd0; border-radius: 4px; padding: 4px 6px; cursor: pointer; transition: all 0.2s; font-size: 12px; position: relative; }
+        .admin-cal-day:hover { border-color: var(--terracotta); background: rgba(196,125,90,0.05); }
+        .admin-cal-day.today { border: 2px solid var(--terracotta); }
+        .admin-cal-day.selected { background: rgba(196,125,90,0.12); border-color: var(--terracotta); }
+        .admin-cal-day.off { background: #f0ece6; color: #bbb; cursor: default; }
+        .admin-cal-day.off:hover { border-color: #e8ddd0; background: #f0ece6; }
+        .admin-cal-day.empty { background: transparent; border: none; cursor: default; min-height: 0; }
+        .admin-cal-day.empty:hover { background: transparent; border: none; }
+        .admin-cal-day-num { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+        .admin-cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 1px; }
+        .admin-cal-dot.confirmed { background: var(--soft-olive); }
+        .admin-cal-dot.blocked { background: #ccc; }
+        .admin-cal-appt-count { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+        .admin-cal-day-detail-item { background: white; border: 1px solid var(--gold); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .admin-cal-day-detail-item .time { font-weight: 700; color: var(--terracotta); min-width: 120px; }
+        .admin-cal-day-detail-item .client { flex: 1; }
+        .admin-cal-day-detail-item .services { font-size: 12px; color: var(--text-light); }
+
         /* FORM SECTION IN MODAL */
         .modal-form-group { margin-bottom: 16px; }
         .modal-form-group label { display: block; font-weight: 600; color: var(--deep-brown); margin-bottom: 6px; font-size: 13px; }
@@ -254,7 +277,21 @@
 
             <!-- UPCOMING -->
             <div class="tab-content" id="upcoming">
-                <h2 class="section-title">Upcoming Appointments</h2>
+                <h2 class="section-title">Monthly Calendar</h2>
+                <div class="admin-calendar-wrapper">
+                    <div class="admin-cal-header">
+                        <button class="btn btn-small" onclick="changeAdminMonth(-1)">&larr; Prev</button>
+                        <h3 id="adminCalMonthLabel" style="margin:0; font-family:'Playfair Display',serif;"></h3>
+                        <button class="btn btn-small" onclick="changeAdminMonth(1)">Next &rarr;</button>
+                    </div>
+                    <div class="admin-cal-grid" id="adminCalGrid"></div>
+                    <div id="adminCalDayDetail" style="margin-top:16px; display:none;">
+                        <h3 id="adminCalDayLabel" style="font-family:'Playfair Display',serif; margin-bottom:8px;"></h3>
+                        <div id="adminCalDayAppts"></div>
+                    </div>
+                </div>
+
+                <h2 class="section-title" style="margin-top:30px;">Upcoming Appointments List</h2>
                 <div class="search-filters">
                     <div class="filter-group">
                         <label for="upcomingSearch">Search by Client Name</label>
@@ -452,7 +489,7 @@
 
     <script>
         // ═══ STATE ═══
-        let authToken = null;
+        let authToken = localStorage.getItem('mimi_admin_token') || null;
         let allAppointments = [];
         let allClients = [];
         let allServices = [];
@@ -490,9 +527,32 @@
         }
 
         // ═══ AUTH ═══
-        function checkAuthState() {
-            if (authToken) { showDashboard(); loadAllData(); }
-            else showLoginScreen();
+        async function checkAuthState() {
+            if (authToken) {
+                // Verify stored token is still valid with a lightweight API call
+                try {
+                    const res = await fetch('/.netlify/functions/admin-api', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                        body: JSON.stringify({ action: 'getAppointments', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] })
+                    });
+                    if (res.ok) {
+                        showDashboard();
+                        loadAllData();
+                    } else {
+                        // Token invalid — clear and show login
+                        authToken = null;
+                        localStorage.removeItem('mimi_admin_token');
+                        showLoginScreen();
+                    }
+                } catch (e) {
+                    // Network error — still show dashboard with cached token
+                    showDashboard();
+                    loadAllData();
+                }
+            } else {
+                showLoginScreen();
+            }
         }
 
         async function handleLogin(e) {
@@ -512,6 +572,7 @@
                 const data = await response.json();
                 if (!response.ok || !data.token) throw new Error(data.message || 'Login failed');
                 authToken = data.token;
+                localStorage.setItem('mimi_admin_token', authToken);
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
                 showDashboard();
@@ -522,7 +583,7 @@
             } finally { loginBtn.disabled = false; }
         }
 
-        function handleLogout() { authToken = null; allAppointments = []; allClients = []; showLoginScreen(); }
+        function handleLogout() { authToken = null; localStorage.removeItem('mimi_admin_token'); allAppointments = []; allClients = []; showLoginScreen(); }
         function showLoginScreen() { document.getElementById('loginScreen').style.display = 'flex'; document.getElementById('dashboard').classList.remove('active'); }
         function showDashboard() { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('dashboard').classList.add('active'); }
 
@@ -532,7 +593,7 @@
             document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
             document.getElementById(tabName).classList.add('active');
             if (tabName === 'today') renderTodaySchedule();
-            else if (tabName === 'upcoming') filterUpcoming();
+            else if (tabName === 'upcoming') { renderAdminCalendar(); filterUpcoming(); }
             else if (tabName === 'history') filterHistory();
             else if (tabName === 'block') renderBlockedTimes();
             else if (tabName === 'clients') { closeClientDetail(); filterClients(); }
@@ -630,6 +691,156 @@
                         <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Notes</button>
                         <button class="btn btn-danger btn-small" onclick="cancelApptWithConfirm('${a.id}')">Cancel</button>
                     </div>
+                </div>
+            `).join('');
+        }
+
+        // ═══ ADMIN MONTHLY CALENDAR ═══
+        let adminCalMonth = new Date().getMonth();
+        let adminCalYear = new Date().getFullYear();
+        let adminCalSelectedDate = null;
+        const ADMIN_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const ADMIN_DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+        // Reference date for alternating Saturdays
+        const ADMIN_REF_SAT = new Date(2026, 3, 4); // April 4, 2026
+
+        function isAdminWorkingSaturday(date) {
+            const weeks = Math.floor((date - ADMIN_REF_SAT) / (7 * 24 * 60 * 60 * 1000));
+            return weeks % 2 === 0;
+        }
+
+        function isAdminBusinessDay(date) {
+            const dow = date.getDay();
+            if (dow === 0 || dow === 1) return false;
+            if (dow === 6) return isAdminWorkingSaturday(date);
+            return true;
+        }
+
+        function changeAdminMonth(delta) {
+            adminCalMonth += delta;
+            if (adminCalMonth > 11) { adminCalMonth = 0; adminCalYear++; }
+            if (adminCalMonth < 0) { adminCalMonth = 11; adminCalYear--; }
+            renderAdminCalendar();
+        }
+
+        function renderAdminCalendar() {
+            document.getElementById('adminCalMonthLabel').textContent = `${ADMIN_MONTH_NAMES[adminCalMonth]} ${adminCalYear}`;
+            const grid = document.getElementById('adminCalGrid');
+            grid.innerHTML = '';
+
+            // Day labels
+            ADMIN_DAY_LABELS.forEach(d => {
+                const lbl = document.createElement('div');
+                lbl.className = 'admin-cal-day-label';
+                lbl.textContent = d;
+                grid.appendChild(lbl);
+            });
+
+            const firstDay = new Date(adminCalYear, adminCalMonth, 1).getDay();
+            const daysInMonth = new Date(adminCalYear, adminCalMonth + 1, 0).getDate();
+            const today = new Date(); today.setHours(0,0,0,0);
+
+            // Build appointment counts by date for this month
+            const monthKey = `${adminCalYear}-${String(adminCalMonth + 1).padStart(2, '0')}`;
+            const apptsByDate = {};
+            allAppointments.forEach(a => {
+                if (a.date && a.date.startsWith(monthKey)) {
+                    if (!apptsByDate[a.date]) apptsByDate[a.date] = [];
+                    apptsByDate[a.date].push(a);
+                }
+            });
+
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'admin-cal-day empty';
+                grid.appendChild(empty);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'admin-cal-day';
+                const date = new Date(adminCalYear, adminCalMonth, d);
+                const dateStr = `${adminCalYear}-${String(adminCalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+                // Day number
+                const numEl = document.createElement('div');
+                numEl.className = 'admin-cal-day-num';
+                numEl.textContent = d;
+                cell.appendChild(numEl);
+
+                // Highlight today
+                if (date.getTime() === today.getTime()) cell.classList.add('today');
+
+                // Highlight selected
+                if (adminCalSelectedDate === dateStr) cell.classList.add('selected');
+
+                // Off days
+                if (!isAdminBusinessDay(date)) {
+                    cell.classList.add('off');
+                    const offLabel = document.createElement('div');
+                    offLabel.style.cssText = 'font-size:10px; color:#bbb;';
+                    offLabel.textContent = 'Closed';
+                    cell.appendChild(offLabel);
+                } else {
+                    // Show appointment dots / count
+                    const dayAppts = apptsByDate[dateStr] || [];
+                    if (dayAppts.length > 0) {
+                        const dotsEl = document.createElement('div');
+                        const confirmed = dayAppts.filter(a => a.status === 'confirmed').length;
+                        const other = dayAppts.length - confirmed;
+                        for (let i = 0; i < Math.min(confirmed, 5); i++) {
+                            const dot = document.createElement('span');
+                            dot.className = 'admin-cal-dot confirmed';
+                            dotsEl.appendChild(dot);
+                        }
+                        for (let i = 0; i < Math.min(other, 3); i++) {
+                            const dot = document.createElement('span');
+                            dot.className = 'admin-cal-dot blocked';
+                            dotsEl.appendChild(dot);
+                        }
+                        cell.appendChild(dotsEl);
+
+                        const countEl = document.createElement('div');
+                        countEl.className = 'admin-cal-appt-count';
+                        countEl.textContent = `${dayAppts.length} appt${dayAppts.length > 1 ? 's' : ''}`;
+                        cell.appendChild(countEl);
+                    }
+
+                    cell.onclick = () => {
+                        adminCalSelectedDate = dateStr;
+                        renderAdminCalendar();
+                        showAdminCalDayDetail(dateStr);
+                    };
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function showAdminCalDayDetail(dateStr) {
+            const detail = document.getElementById('adminCalDayDetail');
+            const label = document.getElementById('adminCalDayLabel');
+            const content = document.getElementById('adminCalDayAppts');
+            detail.style.display = 'block';
+
+            const dateObj = new Date(dateStr + 'T12:00:00');
+            label.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+            const dayAppts = allAppointments.filter(a => a.date === dateStr).sort((a, b) => a.startTime - b.startTime);
+
+            if (dayAppts.length === 0) {
+                content.innerHTML = '<p style="color: var(--text-light); padding: 12px;">No appointments scheduled for this day.</p>';
+                return;
+            }
+
+            content.innerHTML = dayAppts.map(a => `
+                <div class="admin-cal-day-detail-item">
+                    <span class="time">${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</span>
+                    <span class="client">${a.clientName || 'Unknown'}</span>
+                    <span class="services">${a.services || ''}</span>
+                    <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:${a.status === 'confirmed' ? 'rgba(139,158,126,0.2)' : '#eee'}; color:${a.status === 'confirmed' ? 'var(--soft-olive)' : '#999'};">${a.status}</span>
                 </div>
             `).join('');
         }

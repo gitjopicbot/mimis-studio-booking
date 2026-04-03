@@ -689,8 +689,10 @@ function renderCalendar() {
     cell.textContent = d;
     const date = new Date(calYear, calMonth, d);
 
-    // Disable if past date or not a business day
-    if (date < today || !isBusinessDay(date)) {
+    // Disable if past date, not a business day, or within 16-hour cutoff
+    const cutoffTime = new Date(Date.now() + 16 * 60 * 60 * 1000);
+    const cutoffDate = new Date(cutoffTime.getFullYear(), cutoffTime.getMonth(), cutoffTime.getDate());
+    if (date < cutoffDate || !isBusinessDay(date)) {
       cell.classList.add('disabled');
     } else {
       cell.onclick = () => selectDate(calYear, calMonth, d);
@@ -767,11 +769,21 @@ async function renderTimeSlots() {
     }
   }
 
+  // 16-hour advance booking cutoff
+  const now = new Date();
+  const cutoffMs = now.getTime() + 16 * 60 * 60 * 1000;
+
   slots.forEach(slot => {
     const el = document.createElement('div');
     el.className = 'time-slot';
     el.textContent = slot.label;
-    if (!slot.available) {
+
+    // Check if this slot is at least 16 hours from now
+    const slotDate = new Date(selectedDate);
+    slotDate.setHours(Math.floor(slot.start / 60), slot.start % 60, 0, 0);
+    const withinCutoff = slotDate.getTime() < cutoffMs;
+
+    if (!slot.available || withinCutoff) {
       el.classList.add('unavailable');
     } else {
       el.onclick = () => selectTime(slot.start, el);
