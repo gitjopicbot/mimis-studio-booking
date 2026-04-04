@@ -9,21 +9,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream: #FDF6EC;
-    --warm-beige: #F5E6D3;
-    --terracotta: #C47D5A;
-    --terracotta-light: #D99A7E;
-    --deep-brown: #5C3D2E;
-    --soft-olive: #8B9E7E;
-    --olive-light: #A8B89C;
-    --gold: #C9A96E;
-    --gold-light: #E0CC9D;
-    --text-dark: #3A2820;
-    --text-medium: #6B5347;
-    --text-light: #9C8578;
+    --cream: #FFF8F0;
+    --warm-beige: #F3ECF6;
+    --terracotta: #2E6B8A;
+    --terracotta-light: #4A8DB0;
+    --deep-brown: #4A2040;
+    --soft-olive: #5B8C5A;
+    --olive-light: #7BAF7A;
+    --gold: #D4A843;
+    --gold-light: #C9B1D0;
+    --text-dark: #2D1B35;
+    --text-medium: #5C4566;
+    --text-light: #8A7494;
     --white: #FFFFFF;
-    --shadow: rgba(92, 61, 46, 0.1);
-    --shadow-md: rgba(92, 61, 46, 0.15);
+    --shadow: rgba(74, 32, 64, 0.08);
+    --shadow-md: rgba(74, 32, 64, 0.14);
+    --queen-red: #D72638;
+    --queen-red-dark: #B71E2E;
+    --rose-pink: #E8A0BF;
+    --magenta-bg: #F8EEF5;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,7 +42,7 @@
   /* LOADING OVERLAY */
   .loading-overlay {
     position: fixed; inset: 0;
-    background: rgba(253,246,236,0.9);
+    background: rgba(255,248,240,0.9);
     display: flex; align-items: center; justify-content: center;
     z-index: 9999; transition: opacity 0.4s;
   }
@@ -54,7 +58,7 @@
 
   /* HEADER */
   header {
-    background: linear-gradient(135deg, var(--deep-brown) 0%, #7A5240 100%);
+    background: linear-gradient(135deg, var(--deep-brown) 0%, #6B3A5E 100%);
     color: var(--cream);
     text-align: center;
     padding: 2.5rem 1rem 2rem;
@@ -65,20 +69,21 @@
     content: '';
     position: absolute; top: -50%; left: -50%;
     width: 200%; height: 200%;
-    background: radial-gradient(ellipse, rgba(201,169,110,0.15) 0%, transparent 60%);
+    background: radial-gradient(ellipse, rgba(212,168,67,0.12) 0%, transparent 60%);
     pointer-events: none;
   }
   header h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.3rem; position: relative; }
   header p { font-size: 1.05rem; font-weight: 300; opacity: 0.9; letter-spacing: 2px; text-transform: uppercase; position: relative; }
   /* FOOTER */
   .site-footer {
-    background: linear-gradient(135deg, var(--deep-brown) 0%, #7A5240 100%);
-    color: var(--cream); text-align: center; padding: 2rem 1rem; margin-top: 2rem;
+    background: linear-gradient(135deg, var(--magenta-bg) 0%, #F0E0F0 50%, var(--warm-beige) 100%);
+    color: var(--text-dark); text-align: center; padding: 2.5rem 1rem; margin-top: 2rem;
+    border-top: 3px solid var(--gold-light);
   }
-  .footer-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
-  .footer-info { font-size: 0.95rem; opacity: 0.85; line-height: 1.8; }
-  .footer-info a { color: var(--gold-light); text-decoration: none; }
-  .footer-info a:hover { text-decoration: underline; }
+  .footer-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.6rem; color: var(--deep-brown); }
+  .footer-info { font-size: 1rem; line-height: 2; }
+  .footer-info a { color: var(--queen-red); text-decoration: none; font-weight: 700; font-size: 1.05rem; transition: color 0.2s; }
+  .footer-info a:hover { color: var(--queen-red-dark); text-decoration: underline; }
   .footer-hours { display: none; }
   .admin-link { position: fixed; bottom: 12px; left: 12px; z-index: 50; }
   .admin-link a { font-size: 0.7rem; color: var(--text-light); opacity: 0.4; text-decoration: none; transition: opacity 0.3s; }
@@ -87,7 +92,7 @@
   /* REMINDER PICKER */
   .reminder-timing { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
   .reminder-timing-btn {
-    padding: 0.6rem 1.2rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    padding: 0.6rem 1.2rem; border: 2px solid #E4DAE8; border-radius: 8px;
     background: var(--white); cursor: pointer; font-family: 'Lato', sans-serif;
     font-size: 0.9rem; font-weight: 500; color: var(--text-medium); transition: all 0.2s;
   }
@@ -95,7 +100,7 @@
   .reminder-timing-btn.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
   .reminder-method { display: flex; gap: 0.8rem; flex-wrap: wrap; }
   .reminder-method-btn {
-    padding: 0.6rem 1.2rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    padding: 0.6rem 1.2rem; border: 2px solid #E4DAE8; border-radius: 8px;
     background: var(--white); cursor: pointer; font-family: 'Lato', sans-serif;
     font-size: 0.9rem; font-weight: 500; color: var(--text-medium); transition: all 0.2s;
   }
@@ -104,6 +109,7 @@
 
   /* STEP BAR */
   .steps-bar { display: flex; justify-content: center; background: var(--warm-beige); border-bottom: 2px solid var(--gold-light); }
+  /* Alice in Wonderland hover accents */
   .step-tab {
     flex: 1; max-width: 250px; text-align: center; padding: 1rem 0.5rem;
     font-weight: 600; font-size: 0.85rem; text-transform: uppercase;
@@ -151,12 +157,12 @@
     box-shadow: 0 1px 4px var(--shadow);
   }
   .service-card:hover { border-color: var(--terracotta-light); box-shadow: 0 3px 12px var(--shadow-md); transform: translateY(-1px); }
-  .service-card.selected { border-color: var(--terracotta); background: linear-gradient(135deg, #FFF8F2, #FDF6EC); box-shadow: 0 3px 12px var(--shadow-md); }
+  .service-card.selected { border-color: var(--terracotta); background: linear-gradient(135deg, #F0F7FC, var(--cream)); box-shadow: 0 3px 12px var(--shadow-md); }
   .service-card.selected .svc-check { background: var(--terracotta); border-color: var(--terracotta); color: var(--white); }
   .svc-info h4 { font-size: 0.92rem; font-weight: 500; color: var(--text-dark); }
   .svc-duration { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
   .svc-check {
-    width: 24px; height: 24px; border-radius: 6px; border: 2px solid #D4C4BA;
+    width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--gold-light);
     display: flex; align-items: center; justify-content: center;
     font-size: 0.75rem; flex-shrink: 0; transition: all 0.25s;
   }
@@ -180,7 +186,7 @@
   }
   .btn-primary { background: var(--terracotta); color: var(--white); }
   .btn-primary:hover { background: var(--deep-brown); }
-  .btn-primary:disabled { background: #CBBBAF; cursor: not-allowed; }
+  .btn-primary:disabled { background: #C4B8CA; cursor: not-allowed; }
   .btn-secondary { background: transparent; color: var(--terracotta); border: 2px solid var(--terracotta); }
   .btn-secondary:hover { background: var(--terracotta); color: var(--white); }
   .btn-row { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; flex-wrap: wrap; }
@@ -197,20 +203,20 @@
   .cal-day:hover:not(.disabled):not(.empty) { background: var(--warm-beige); }
   .cal-day.selected { background: var(--terracotta); color: var(--white); font-weight: 600; }
   .cal-day.today { border: 2px solid var(--gold); }
-  .cal-day.disabled { color: #D4C4BA; cursor: default; }
+  .cal-day.disabled { color: #D0C4D4; cursor: default; }
   .cal-day.empty { cursor: default; }
 
   /* TIME SLOTS */
   .time-slots-wrapper { background: var(--white); border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 12px var(--shadow); }
   .time-slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.6rem; margin-top: 1rem; }
   .time-slot {
-    padding: 0.7rem; border: 2px solid #E8DDD5; border-radius: 8px;
+    padding: 0.7rem; border: 2px solid #E4DAE8; border-radius: 8px;
     text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500;
     transition: all 0.2s; color: var(--text-medium);
   }
-  .time-slot:hover { border-color: var(--terracotta-light); background: #FFF8F2; }
+  .time-slot:hover { border-color: var(--terracotta-light); background: #FFF5FA; }
   .time-slot.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
-  .time-slot.unavailable { background: #F5F0EB; color: #CBBBAF; cursor: not-allowed; border-color: #EBE3DB; text-decoration: line-through; }
+  .time-slot.unavailable { background: #F3EEF5; color: #C4B8CA; cursor: not-allowed; border-color: #E4DAE8; text-decoration: line-through; }
 
   /* FORM */
   .form-card { background: var(--white); border-radius: 14px; padding: 2rem; box-shadow: 0 2px 12px var(--shadow); }
@@ -219,7 +225,7 @@
   .form-group.full { grid-column: 1 / -1; }
   .form-group label { font-weight: 500; font-size: 0.85rem; color: var(--text-medium); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .form-group input, .form-group select, .form-group textarea {
-    font-family: 'Lato', sans-serif; padding: 0.75rem 1rem; border: 2px solid #E8DDD5;
+    font-family: 'Lato', sans-serif; padding: 0.75rem 1rem; border: 2px solid #E4DAE8;
     border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;
     background: var(--cream); color: var(--text-dark);
   }
@@ -433,7 +439,7 @@
   <div class="footer-info">
     <a href="tel:+17072924914">(707) 292-4914</a> &nbsp;&middot;&nbsp;
     <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a>
-    <br>330 South A St, Santa Rosa, CA 95401
+    <div style="color:var(--text-medium);font-size:0.95rem;margin-top:0.3rem;font-weight:400;">330 South A St, Santa Rosa, CA 95401</div>
   </div>
 </footer>
 
