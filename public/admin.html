@@ -271,7 +271,15 @@
 
             <!-- TODAY'S SCHEDULE -->
             <div class="tab-content active" id="today">
-                <h2 class="section-title">Today's Schedule</h2>
+                <div class="admin-cal-header">
+                    <button class="btn btn-small" onclick="changeScheduleDay(-1)">&larr; Prev Day</button>
+                    <div style="text-align:center;">
+                        <h2 id="scheduleDayLabel" class="section-title" style="margin:0;cursor:pointer;" onclick="document.getElementById('scheduleDatePicker').showPicker()"></h2>
+                        <input type="date" id="scheduleDatePicker" style="position:absolute;opacity:0;pointer-events:none;" onchange="jumpToScheduleDate(this.value)">
+                        <button class="btn btn-small" id="scheduleTodayBtn" onclick="goToScheduleToday()" style="margin-top:6px;display:none;font-size:11px;padding:3px 12px;">Today</button>
+                    </div>
+                    <button class="btn btn-small" onclick="changeScheduleDay(1)">Next Day &rarr;</button>
+                </div>
                 <div id="todayContent"><div class="loading">Loading...</div></div>
             </div>
 
@@ -662,15 +670,55 @@
             }));
         }
 
-        // ═══ RENDER: TODAY ═══
+        // ═══ RENDER: TODAY / DAILY SCHEDULE ═══
+        let scheduleDate = new Date().toISOString().split('T')[0]; // current selected date
+
+        function changeScheduleDay(delta) {
+            const d = new Date(scheduleDate + 'T12:00:00');
+            d.setDate(d.getDate() + delta);
+            scheduleDate = d.toISOString().split('T')[0];
+            renderTodaySchedule();
+        }
+
+        function goToScheduleToday() {
+            scheduleDate = new Date().toISOString().split('T')[0];
+            renderTodaySchedule();
+        }
+
+        function jumpToScheduleDate(val) {
+            if (val) { scheduleDate = val; renderTodaySchedule(); }
+        }
+
         function renderTodaySchedule() {
             const today = new Date().toISOString().split('T')[0];
-            const todayAppts = allAppointments
-                .filter(a => a.date === today && a.status !== 'blocked' && a.status !== 'cancelled')
+            const viewDate = scheduleDate || today;
+            const dateObj = new Date(viewDate + 'T12:00:00');
+            const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const label = document.getElementById('scheduleDayLabel');
+            const todayBtn = document.getElementById('scheduleTodayBtn');
+            const picker = document.getElementById('scheduleDatePicker');
+
+            // Format the label
+            const isToday = viewDate === today;
+            const dateLabel = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
+            label.textContent = isToday ? `Today \u2014 ${dateLabel}` : dateLabel;
+            todayBtn.style.display = isToday ? 'none' : 'inline-block';
+            picker.value = viewDate;
+
+            // Update tab button text
+            const tabBtn = document.querySelector('[data-tab="today"]');
+            if (tabBtn) tabBtn.textContent = isToday ? "Today's Schedule" : 'Daily Schedule';
+
+            const dayAppts = allAppointments
+                .filter(a => a.date === viewDate && a.status !== 'blocked' && a.status !== 'cancelled')
                 .sort((a, b) => a.startTime - b.startTime);
             const content = document.getElementById('todayContent');
-            if (todayAppts.length === 0) { content.innerHTML = '<div class="empty-state"><p>No appointments scheduled for today.</p></div>'; return; }
-            content.innerHTML = todayAppts.map(a => `
+            if (dayAppts.length === 0) {
+                content.innerHTML = `<div class="empty-state"><p>No appointments scheduled for ${isToday ? 'today' : dateLabel}.</p></div>`;
+                return;
+            }
+            content.innerHTML = dayAppts.map(a => `
                 <div class="form-section">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:15px;">
                         <div>
