@@ -835,14 +835,23 @@
                 return;
             }
 
-            content.innerHTML = dayAppts.map(a => `
-                <div class="admin-cal-day-detail-item">
+            content.innerHTML = dayAppts.map(a => {
+                if (a.status === 'blocked') {
+                    const reason = a.adminNotes || a.notes || 'Blocked';
+                    return `<div class="admin-cal-day-detail-item" style="background:rgba(217,83,79,0.08);border-left:3px solid #d9534f;">
+                        <span class="time">${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</span>
+                        <span class="client" style="color:#d9534f;font-weight:600;">Blocked</span>
+                        <span class="services" style="font-style:italic;color:#666;">${reason}</span>
+                        <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(217,83,79,0.15); color:#d9534f;">blocked</span>
+                    </div>`;
+                }
+                return `<div class="admin-cal-day-detail-item">
                     <span class="time">${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</span>
                     <span class="client">${a.clientName || 'Unknown'}</span>
                     <span class="services">${a.services || ''}</span>
                     <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:${a.status === 'confirmed' ? 'rgba(139,158,126,0.2)' : '#eee'}; color:${a.status === 'confirmed' ? 'var(--soft-olive)' : '#999'};">${a.status}</span>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // ═══ RENDER: UPCOMING ═══
