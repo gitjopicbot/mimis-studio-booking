@@ -1727,14 +1727,32 @@
             const startM = appt.startTime % 60;
             const timeVal = `${String(startH).padStart(2,'0')}:${String(startM).padStart(2,'0')}`;
 
+            const duration = appt.endTime - appt.startTime;
+            const durationH = Math.floor(duration / 60);
+            const durationM = duration % 60;
+            const durationLabel = durationH > 0 ? `${durationH}h ${durationM > 0 ? durationM + 'min' : ''}` : `${durationM}min`;
+
             document.getElementById('editAppointmentContent').innerHTML = `
                 <div class="modal-form-group">
                     <label for="editApptDate">Date</label>
                     <input type="date" id="editApptDate" value="${appt.date}">
                 </div>
                 <div class="modal-form-group">
-                    <label for="editApptTime">Time</label>
+                    <label for="editApptTime">Start Time</label>
                     <input type="time" id="editApptTime" value="${timeVal}">
+                </div>
+                <div class="modal-form-group">
+                    <label>Duration</label>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <button class="btn btn-danger btn-small" onclick="adjustDuration(-30)" title="Remove 30 min">&minus; 30m</button>
+                        <button class="btn btn-danger btn-small" onclick="adjustDuration(-15)" title="Remove 15 min">&minus; 15m</button>
+                        <span id="editDurationDisplay" style="font-size:18px;font-weight:700;min-width:80px;text-align:center;color:var(--deep-brown);">${durationLabel}</span>
+                        <button class="btn btn-secondary btn-small" onclick="adjustDuration(15)" title="Add 15 min">+ 15m</button>
+                        <button class="btn btn-secondary btn-small" onclick="adjustDuration(30)" title="Add 30 min">+ 30m</button>
+                    </div>
+                    <div style="margin-top:6px;font-size:12px;color:var(--text-light);">
+                        End time: <strong id="editEndTimeDisplay">${fmtTime(appt.endTime)}</strong>
+                    </div>
                 </div>
                 <div class="modal-form-group">
                     <label for="editApptStatus">Status</label>
@@ -1754,6 +1772,7 @@
                     <textarea id="editApptAdminNotes">${appt.adminNotes || ''}</textarea>
                 </div>
             `;
+            window._editDuration = duration;
 
             currentEditingAppointmentId = apptId;
             document.getElementById('editAppointmentModal').classList.add('active');
@@ -1762,6 +1781,24 @@
         function closeEditAppointmentModal() {
             document.getElementById('editAppointmentModal').classList.remove('active');
             currentEditingAppointmentId = null;
+            window._editDuration = null;
+        }
+
+        function adjustDuration(delta) {
+            if (!window._editDuration) return;
+            const newDur = window._editDuration + delta;
+            if (newDur < 15) { showError('Minimum duration is 15 minutes'); return; }
+            if (newDur > 480) { showError('Maximum duration is 8 hours'); return; }
+            window._editDuration = newDur;
+            const h = Math.floor(newDur / 60);
+            const m = newDur % 60;
+            document.getElementById('editDurationDisplay').textContent = h > 0 ? `${h}h ${m > 0 ? m + 'min' : ''}` : `${m}min`;
+            // Update end time preview
+            const timeParts = document.getElementById('editApptTime').value.split(':');
+            if (timeParts.length === 2) {
+                const startMin = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+                document.getElementById('editEndTimeDisplay').textContent = fmtTime(startMin + newDur);
+            }
         }
 
         async function submitEditAppointment() {
@@ -1773,8 +1810,7 @@
             const notes = document.getElementById('editApptNotes').value;
             const adminNotes = document.getElementById('editApptAdminNotes').value;
 
-            const appt = allAppointments.find(a => a.id === apptId);
-            const duration = appt ? (appt.endTime - appt.startTime) : 60;
+            const duration = window._editDuration || 60;
 
             try {
                 await apiCall('updateAppointment', {
@@ -1783,6 +1819,7 @@
                         appointment_date: date,
                         start_time: startTime,
                         end_time: startTime + duration,
+                        total_duration: duration,
                         status,
                         notes,
                         admin_notes: adminNotes
