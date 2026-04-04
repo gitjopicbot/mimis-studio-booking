@@ -1441,17 +1441,34 @@
                 allServices = [];
             }
 
-            // Build service list HTML
+            // Build service list HTML grouped by category
             let servicesHtml = '';
             if (allServices.length > 0) {
-                servicesHtml = `<div class="service-list">
-                    ${allServices.map((s, idx) => `
-                        <div class="service-checkbox">
-                            <input type="checkbox" id="bookService${idx}" value="${s.id}" data-duration="${s.duration_minutes || 30}">
-                            <label for="bookService${idx}">${s.name} (${s.duration_minutes || 30}min)</label>
-                        </div>
-                    `).join('')}
-                </div>`;
+                const grouped = {};
+                allServices.forEach(s => {
+                    const cat = s.category || 'Other';
+                    if (!grouped[cat]) grouped[cat] = [];
+                    grouped[cat].push(s);
+                });
+                // Show Custom category last
+                const cats = Object.keys(grouped).sort((a,b) => {
+                    if (a === 'Custom') return 1;
+                    if (b === 'Custom') return -1;
+                    return a.localeCompare(b);
+                });
+                let globalIdx = 0;
+                servicesHtml = `<div class="service-list" style="max-height:200px;">`;
+                cats.forEach(cat => {
+                    servicesHtml += `<div style="font-weight:bold;padding:6px 0 2px;color:var(--deep-brown);border-bottom:1px solid #eee;margin-top:4px;">${cat}</div>`;
+                    grouped[cat].forEach(s => {
+                        servicesHtml += `<div class="service-checkbox">
+                            <input type="checkbox" id="bookService${globalIdx}" value="${s.id}" data-duration="${s.duration_minutes || 30}">
+                            <label for="bookService${globalIdx}">${s.name} (${s.duration_minutes || 30}min)</label>
+                        </div>`;
+                        globalIdx++;
+                    });
+                });
+                servicesHtml += `</div>`;
             } else {
                 servicesHtml = '<div style="color: #999; padding: 8px;">No services available</div>';
             }
