@@ -537,7 +537,7 @@
 
     <footer>
         <p><strong>Mimi's Studio</strong></p>
-        <p>Phone: <a href="tel:+17072924914">(707) 292-4914</a> | Email: <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a></p>
+        <p>&nbsp;</p>
         <p>330 South A St, Santa Rosa, CA 95401</p>
     </footer>
 
@@ -581,7 +581,7 @@
             </div>
 
         <script>
-        // ═══ STATE ═══
+        // âââ STATE âââ
         let authToken = localStorage.getItem('mimi_admin_token') || null;
         let allAppointments = [];
         let allClients = [];
@@ -595,7 +595,7 @@
         let mergeSourceId = null;
         let mergeTargetId = null;
 
-        // ═══ INIT ═══
+        // âââ INIT âââ
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             checkAuthState();
@@ -619,7 +619,7 @@
             document.getElementById('blockDate').value = new Date().toISOString().split('T')[0];
         }
 
-        // ═══ AUTH ═══
+        // âââ AUTH âââ
         async function checkAuthState() {
             if (authToken) {
                 // Verify stored token is still valid with a lightweight API call
@@ -633,13 +633,13 @@
                         showDashboard();
                         loadAllData();
                     } else {
-                        // Token invalid — clear and show login
+                        // Token invalid â clear and show login
                         authToken = null;
                         localStorage.removeItem('mimi_admin_token');
                         showLoginScreen();
                     }
                 } catch (e) {
-                    // Network error — still show dashboard with cached token
+                    // Network error â still show dashboard with cached token
                     showDashboard();
                     loadAllData();
                 }
@@ -692,7 +692,7 @@
             else if (tabName === 'clients') { closeClientDetail(); filterClients(); }
         }
 
-        // ═══ API ═══
+        // âââ API âââ
         async function apiCall(action, params = {}) {
             const response = await fetch('/.netlify/functions/admin-api', {
                 method: 'POST',
@@ -716,7 +716,7 @@
             } catch (error) { console.error('Error loading data:', error); }
         }
 
-        // ═══ NORMALIZE DATA ═══
+        // âââ NORMALIZE DATA âââ
         function normalizeAppointments(raw) {
             if (!Array.isArray(raw)) return [];
             return raw.map(a => ({
@@ -755,7 +755,7 @@
             }));
         }
 
-        // ═══ RENDER: TODAY / DAILY SCHEDULE ═══
+        // âââ RENDER: TODAY / DAILY SCHEDULE âââ
         let scheduleDate = new Date().toISOString().split('T')[0]; // current selected date
 
         function changeScheduleDay(delta) {
@@ -826,7 +826,7 @@
             `).join('');
         }
 
-        // ═══ ADMIN MONTHLY CALENDAR ═══
+        // âââ ADMIN MONTHLY CALENDAR âââ
         let adminCalMonth = new Date().getMonth();
         let adminCalYear = new Date().getFullYear();
         let adminCalSelectedDate = null;
@@ -985,7 +985,7 @@
             }).join('');
         }
 
-        // ═══ RENDER: UPCOMING ═══
+        // âââ RENDER: UPCOMING âââ
         function filterUpcoming() {
             const now = new Date();
             const today = now.toISOString().split('T')[0];
@@ -1000,7 +1000,7 @@
             renderAppointmentTable('upcomingContent', filtered, true);
         }
 
-        // ═══ RENDER: HISTORY ═══
+        // âââ RENDER: HISTORY âââ
         function filterHistory() {
             const today = new Date().toISOString().split('T')[0];
             const search = document.getElementById('historySearch').value.toLowerCase();
@@ -1040,7 +1040,7 @@
             content.innerHTML = html;
         }
 
-        // ═══ RENDER: BLOCKED TIMES ═══
+        // âââ RENDER: BLOCKED TIMES âââ
         function renderBlockedTimes() {
             const blocked = allAppointments.filter(a => a.status === 'blocked').sort((a,b) => a.date.localeCompare(b.date));
             const content = document.getElementById('blockedTimesContent');
@@ -1053,7 +1053,7 @@
             `).join('');
         }
 
-        // ═══ RENDER: CLIENTS ═══
+        // âââ RENDER: CLIENTS âââ
         function filterClients() {
             const search = document.getElementById('clientSearch').value.toLowerCase();
             const sort = document.getElementById('clientSort').value;
@@ -1097,7 +1097,7 @@
             }).join('');
         }
 
-        // ═══ CLIENT DETAIL VIEW ═══
+        // âââ CLIENT DETAIL VIEW âââ
         async function openClientDetail(clientId) {
             if (mergeMode) return; // Don't open detail in merge mode
             currentClientDetailId = clientId;
@@ -1221,7 +1221,7 @@
             setTimeout(() => openClientDetail(clientId), 100);
         }
 
-        // ═══ EDIT CLIENT MODAL ═══
+        // âââ EDIT CLIENT MODAL âââ
         async function openEditClientModal(clientId) {
             currentEditingClientId = clientId;
             const client = allClients.find(c => c.id === clientId);
@@ -1332,7 +1332,7 @@
             }
         }
 
-        // ═══ DRAG & DROP MERGE ═══
+        // âââ DRAG & DROP MERGE âââ
         function toggleMergeMode() {
             mergeMode = !mergeMode;
             document.getElementById('mergeZone').classList.toggle('active', mergeMode);
@@ -1421,7 +1421,7 @@
             }
         }
 
-        // ═══ APPOINTMENT ACTIONS ═══
+        // âââ APPOINTMENT ACTIONS âââ
         async function cancelAppt(id) {
             try {
                 await apiCall('deleteAppointment', { appointmentId: id });
@@ -1462,7 +1462,7 @@
             } catch (e) { console.error(e); }
         }
 
-        // ═══ EDIT MODAL ═══
+        // âââ EDIT MODAL âââ
         function openEditModal(apptId) {
             const a = allAppointments.find(x => x.id === apptId);
             if (!a) return;
@@ -1502,7 +1502,7 @@
             } catch (e) { showError(e.message); }
         }
 
-        // ═══ NOTES MODAL ═══
+        // âââ NOTES MODAL âââ
         function openNotesModal(apptId) {
             const a = allAppointments.find(x => x.id === apptId);
             if (!a) return;
@@ -1524,7 +1524,7 @@
             } catch (e) { showError(e.message); }
         }
 
-        // ═══ FORMATTING HELPERS ═══
+        // âââ FORMATTING HELPERS âââ
         function fmtTime(val) {
             if (typeof val === 'number') {
                 const h = Math.floor(val / 60);
@@ -1565,7 +1565,7 @@
             setTimeout(() => el.className = 'message', 5000);
         }
 
-        // ═══ BOOK APPOINTMENT MODAL ═══
+        // âââ BOOK APPOINTMENT MODAL âââ
         async function openBookAppointmentModal(clientId) {
             currentBookingClientId = clientId;
             const client = allClients.find(c => c.id === clientId);
@@ -1804,7 +1804,7 @@
             }
         }
 
-        // ═══ EDIT APPOINTMENT MODAL (Enhanced) ═══
+        // âââ EDIT APPOINTMENT MODAL (Enhanced) âââ
         async function openEditAppointmentModal(apptId) {
             const appt = allAppointments.find(a => a.id === apptId);
             if (!appt) return;

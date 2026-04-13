@@ -295,7 +295,7 @@
 
 <div class="container">
 
-<!-- ═══ PAGE 1: SERVICES ═══ -->
+<!-- âââ PAGE 1: SERVICES âââ -->
 <div class="page active" id="page1">
   <div style="margin-bottom:1.5rem;">
     <h2 class="section-title">Choose Your Services</h2>
@@ -323,7 +323,7 @@
   </div>
 </div>
 
-<!-- ═══ PAGE 2: DATE & TIME ═══ -->
+<!-- âââ PAGE 2: DATE & TIME âââ -->
 <div class="page" id="page2">
   <h2 class="section-title">Pick a Date &amp; Time</h2>
   <p class="section-subtitle">Select a date and time that works for you.</p>
@@ -354,7 +354,7 @@
   </div>
 </div>
 
-<!-- ═══ PAGE 3: YOUR INFO ═══ -->
+<!-- âââ PAGE 3: YOUR INFO âââ -->
 <div class="page" id="page3">
   <h2 class="section-title">Your Information</h2>
   <p class="section-subtitle">We'll use this to confirm your booking and send reminders.</p>
@@ -415,7 +415,7 @@
   </div>
 </div>
 
-<!-- ═══ PAGE 4: CONFIRMATION ═══ -->
+<!-- âââ PAGE 4: CONFIRMATION âââ -->
 <div class="page" id="page4">
   <div class="confirmation-card">
     <div class="confirm-icon">&#10003;</div>
@@ -437,9 +437,7 @@
 <footer class="site-footer">
   <div class="footer-title">Mimi's Studio</div>
   <div class="footer-info">
-    <a href="tel:+17072924914">(707) 292-4914</a> &nbsp;&middot;&nbsp;
-    <a href="mailto:mimisstudio@gmail.com">mimisstudio@gmail.com</a>
-    <div style="color:var(--text-medium);font-size:0.95rem;margin-top:0.3rem;font-weight:400;">330 South A St, Santa Rosa, CA 95401</div>
+        <div style="color:var(--text-medium);font-size:0.95rem;margin-top:0.3rem;font-weight:400;">330 South A St, Santa Rosa, CA 95401</div>
   </div>
 </footer>
 
@@ -447,14 +445,14 @@
 <div class="admin-link"><a href="/admin.html">Admin</a></div>
 
 <script>
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  CONFIG - API base (auto-detects Netlify)
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 const API_BASE = '/.netlify/functions';
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  FALLBACK SERVICES (used if API is down)
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 const FALLBACK_SERVICES = [
   { id: 1, name: "Women's Haircut - New Style", duration_minutes: 60, category: "haircuts" },
   { id: 2, name: "Women's Haircut - Trim", duration_minutes: 30, category: "haircuts" },
@@ -490,9 +488,9 @@ const FALLBACK_SERVICES = [
   { id: 32, name: "Waxing Brazilian Man", duration_minutes: 60, category: "waxing" },
 ];
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  STATE
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 let services = [];
 let selectedServices = new Set();
 let selectedDate = null;
@@ -506,9 +504,9 @@ const OPEN_HOUR = 11;
 const CLOSE_HOUR = 19;
 const SLOT_INCREMENT = 30;
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  INIT
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 async function init() {
   const now = new Date();
   calYear = now.getFullYear();
@@ -533,9 +531,9 @@ async function init() {
   document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  RENDER SERVICES
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 function renderServices() {
   const catMap = { haircuts: 'cat-haircuts', color: 'cat-color', perms: 'cat-perms', waxing: 'cat-waxing' };
   Object.values(catMap).forEach(id => document.getElementById(id).innerHTML = '');
@@ -598,9 +596,9 @@ function getSelectedServiceNames() {
   return names;
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  REMINDER SELECTION
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 function selectReminderTiming(btn) {
   document.querySelectorAll('.reminder-timing-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -628,9 +626,9 @@ function formatTime(mins) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  CALENDAR
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
@@ -724,9 +722,9 @@ async function selectDate(y, m, d) {
   await renderTimeSlots();
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  TIME SLOTS (calls API for real availability)
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 async function renderTimeSlots() {
   const wrapper = document.getElementById('timeSlotsWrapper');
   const grid = document.getElementById('timeSlotsGrid');
@@ -806,9 +804,9 @@ function selectTime(startMin, el) {
   document.getElementById('toStep3Btn').disabled = false;
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  NAVIGATION
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 function goToPage(num) {
   if (num === 2 && selectedServices.size === 0) return;
   if (num === 3 && (!selectedDate || selectedTime === null)) return;
@@ -826,9 +824,9 @@ function goToPage(num) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  BOOK APPOINTMENT (calls real API)
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 async function confirmBooking() {
   if (isBooking) return;
 
@@ -896,7 +894,7 @@ async function confirmBooking() {
     }
   } catch (e) {
     console.error('Booking API error:', e);
-    showToast('Could not connect to booking system. Please call (707) 292-4914 to book.', 'error');
+    showToast('Could not connect to booking system. Please try again later.', 'error');
     btn.disabled = false;
     btn.textContent = 'Confirm Booking \u2713';
     isBooking = false;
@@ -931,9 +929,9 @@ async function confirmBooking() {
   isBooking = false;
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  RESET
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 function resetBooking() {
   selectedServices.clear();
   selectedDate = null;
@@ -953,9 +951,9 @@ function resetBooking() {
   goToPage(1);
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  TOAST
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 function showToast(message, type) {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -966,9 +964,9 @@ function showToast(message, type) {
   setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 5000);
 }
 
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 //  PHONE FORMAT
-// ═══════════════════════════════════════
+// âââââââââââââââââââââââââââââââââââââââ
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('phone').addEventListener('input', (e) => {
     let val = e.target.value.replace(/\D/g, '');
