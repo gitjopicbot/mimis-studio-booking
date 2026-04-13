@@ -355,7 +355,7 @@ function clientEmailHtml({ firstName, dateFormatted, timeFormatted, endTimeForma
         </table>
       </div>
       <p style="color: #6B5347; font-size: 14px; line-height: 1.6;">
-        Need to change or cancel? Please call or text us at least 24 hours before your appointment.
+        Need to change or cancel? Please call or text Mimi at least 24 hours before your appointment.
       </p>
       <p style="color: #C47D5A; font-size: 14px;">See you soon!</p>
       <p style="color: #3A2820; font-weight: bold;">- Mimi's Studio</p>
