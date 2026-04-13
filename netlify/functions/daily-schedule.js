@@ -119,8 +119,7 @@ function scheduleEmailNoAppointments(tomorrow) {
       </div>
       <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #E0CC9D;">
         <p style="color: #6B5347; font-size: 13px; margin: 0;">
-          <strong>Phone:</strong> (707) 292-4914<br>
-          <strong>Email:</strong> mimisstudio@gmail.com
+          330 South A St, Santa Rosa, CA 95401
         </p>
       </div>
     </div>
@@ -162,7 +161,7 @@ function scheduleEmailWithAppointments(tomorrow, appointments) {
     <div style="padding: 40px;">
       <h2 style="color: #5C3D2E; font-size: 24px; margin: 0 0 10px;">Tomorrow's Schedule</h2>
       <p style="color: #8B7355; font-size: 15px; margin: 0 0 25px;">
-        <strong>${dateFormatted}</strong> • <span style="color: #C47D5A; font-weight: bold;">${appointments.length} appointment${appointments.length === 1 ? '' : 's'}</span>
+        <strong>${dateFormatted}</strong> â¢ <span style="color: #C47D5A; font-weight: bold;">${appointments.length} appointment${appointments.length === 1 ? '' : 's'}</span>
       </p>
 
       <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(92, 61, 46, 0.1);">
@@ -189,9 +188,8 @@ function scheduleEmailWithAppointments(tomorrow, appointments) {
 
       <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E0CC9D; text-align: center;">
         <p style="color: #6B5347; font-size: 13px; margin: 0; line-height: 1.8;">
-          <strong>Contact Information</strong><br>
-          <span style="color: #8B7355;">(707) 292-4914</span><br>
-          <span style="color: #8B7355;">mimisstudio@gmail.com</span>
+          <strong>Mimi's Studio</strong><br>
+          <span style="color: #8B7355;">330 South A St, Santa Rosa, CA 95401</span>
         </p>
       </div>
     </div>

@@ -156,8 +156,7 @@ function reminderEmailHtml({ firstName, date, time, services, urgent }) {
     </div>
     <div style="background: #5C3D2E; padding: 15px; text-align: center;">
       <p style="color: #E0CC9D; font-size: 13px; margin: 0;">
-        <a href="tel:+17072924914" style="color: #E0CC9D; text-decoration: none;">(707) 292-4914</a> &nbsp;|&nbsp;
-        <a href="mailto:mimisstudio@gmail.com" style="color: #E0CC9D; text-decoration: none;">mimisstudio@gmail.com</a>
+        330 South A St, Santa Rosa, CA 95401
       </p>
     </div>
   </div>`;
