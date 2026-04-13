@@ -51,7 +51,7 @@ exports.handler = async (event) => {
 
     // Send the email
     await resend.emails.send({
-      from: 'Mimi\'s Studio <onboarding@resend.dev>',
+      from: 'Mimi\'s Studio <bookings@mimisstudio1.com>',
       to: mimiEmail,
       subject: emailSubject,
       html: emailHtml

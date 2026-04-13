@@ -48,7 +48,7 @@ exports.handler = async (event) => {
       if (!appt.reminder_24h_sent && hoursUntil <= 24 && hoursUntil > 1 && client?.remind_email) {
         try {
           await resend.emails.send({
-            from: 'Mimi\'s Studio <onboarding@resend.dev>',
+            from: 'Mimi\'s Studio <bookings@mimisstudio1.com>',
             to: client.email,
             subject: 'Reminder: Your appointment at Mimi\'s Studio is tomorrow!',
             html: reminderEmailHtml({
@@ -74,7 +74,7 @@ exports.handler = async (event) => {
       if (!appt.reminder_1h_sent && hoursUntil <= 1 && hoursUntil > 0 && client?.remind_email) {
         try {
           await resend.emails.send({
-            from: 'Mimi\'s Studio <onboarding@resend.dev>',
+            from: 'Mimi\'s Studio <bookings@mimisstudio1.com>',
             to: client.email,
             subject: 'Mimi\'s Studio - Your appointment is in 1 hour!',
             html: reminderEmailHtml({

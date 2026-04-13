@@ -154,7 +154,7 @@ exports.handler = async (event) => {
     console.log('Sending confirmation email to:', email);
     try {
       const clientEmailResult = await resend.emails.send({
-        from: 'Mimi\'s Studio <onboarding@resend.dev>',
+        from: 'Mimi\'s Studio <bookings@mimisstudio1.com>',
         to: email,
         subject: `Your Appointment at Mimi's Studio - ${dateFormatted}`,
         html: clientEmailHtml({
@@ -171,7 +171,7 @@ exports.handler = async (event) => {
     console.log('Sending notification email to Mimi:', MIMI_EMAIL);
     try {
       const mimiEmailResult = await resend.emails.send({
-        from: 'Mimi\'s Studio Booking <onboarding@resend.dev>',
+        from: 'Mimi\'s Studio Booking <bookings@mimisstudio1.com>',
         to: MIMI_EMAIL,
         subject: `New Booking: ${firstName} ${lastName} - ${dateFormatted} at ${timeFormatted}`,
         html: mimiEmailHtml({
