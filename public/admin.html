@@ -17,10 +17,10 @@
             --warm-beige: #F3ECF6;
             --text-dark: #2D1B35;
             --text-light: #8A7494;
-                --queen-red: #D72638;
-                --queen-red-dark: #B71E2E;
-                --lavender: #C9B1D0;
-                --lavender-bg: #F3ECF6;
+            --queen-red: #D72638;
+            --queen-red-dark: #B71E2E;
+            --lavender: #C9B1D0;
+            --lavender-bg: #F3ECF6;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Lato', sans-serif; background-color: var(--cream); color: var(--deep-brown); line-height: 1.6; }
@@ -37,18 +37,18 @@
         .logout-btn:hover { background-color: #245A75; }
 
         /* LOGIN */
-        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--deep-brown) 0%, var(--soft-olive) 100%); padding: 20px; }
+        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--deep-brown) 0%, #6B3A5E 60%, var(--terracotta) 100%); padding: 20px; }
         .login-card { background-color: var(--cream); padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
         .login-card h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 10px; color: var(--deep-brown); text-align: center; }
         .login-card p { text-align: center; color: var(--soft-olive); margin-bottom: 30px; font-size: 14px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--deep-brown); font-weight: 600; font-size: 14px; }
-        .form-group input { width: 100%; padding: 12px; border: 2px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 14px; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid var(--lavender); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: var(--terracotta); }
         .login-btn { width: 100%; padding: 12px; background-color: var(--terracotta); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; }
         .login-btn:hover { background-color: #245A75; }
         .login-btn:disabled { background-color: var(--soft-olive); cursor: not-allowed; }
-        .login-error { color: #d9534f; font-size: 14px; margin-top: 15px; padding: 10px; background-color: rgba(217,83,79,0.1); border-radius: 4px; display: none; }
+        .login-error { color: var(--queen-red); font-size: 14px; margin-top: 15px; padding: 10px; background-color: rgba(215,38,56,0.1); border-radius: 4px; display: none; }
 
         /* DASHBOARD */
         .dashboard { display: none; }
@@ -62,7 +62,7 @@
 
         /* SECTION */
         .section-title { font-family: 'Playfair Display', serif; font-size: 24px; margin-bottom: 20px; color: var(--deep-brown); }
-        .search-filters { background-color: rgba(196,125,90,0.1); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .search-filters { background-color: rgba(201,177,208,0.15); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         .filter-group { display: flex; flex-direction: column; }
         .filter-group label { font-weight: 600; color: var(--deep-brown); margin-bottom: 5px; font-size: 13px; }
         .filter-group input, .filter-group select { padding: 8px; border: 1px solid var(--lavender); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 14px; }
@@ -72,13 +72,13 @@
         .appointments-table thead { background-color: var(--deep-brown); color: var(--cream); }
         .appointments-table th { padding: 15px; text-align: left; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
         .appointments-table td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .appointments-table tbody tr:hover { background-color: rgba(196,125,90,0.05); }
+        .appointments-table tbody tr:hover { background-color: rgba(201,177,208,0.1); }
 
         /* STATUS */
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-confirmed { background-color: rgba(139,158,126,0.2); color: var(--soft-olive); }
         .status-completed { background-color: rgba(139,158,126,0.3); color: #6b7a5d; }
-        .status-cancelled { background-color: rgba(217,83,79,0.2); color: #d9534f; }
+        .status-cancelled { background-color: rgba(215,38,56,0.12); color: var(--queen-red); }
         .status-noshow, .status-no_show { background-color: rgba(201,169,110,0.2); color: var(--gold); }
         .status-blocked { background-color: rgba(92,61,46,0.2); color: var(--deep-brown); }
 
@@ -89,8 +89,8 @@
         .btn-primary:hover { background-color: #245A75; }
         .btn-secondary { background-color: var(--soft-olive); color: white; }
         .btn-secondary:hover { background-color: #4A7A49; }
-        .btn-danger { background-color: #d9534f; color: white; }
-        .btn-danger:hover { background-color: #c9302c; }
+        .btn-danger { background-color: var(--queen-red); color: white; }
+        .btn-danger:hover { background-color: var(--queen-red-dark); }
         .btn-warning { background-color: var(--gold); color: var(--deep-brown); }
         .btn-warning:hover { background-color: #b8945f; }
         .btn-small { padding: 6px 10px; font-size: 11px; }
@@ -156,7 +156,7 @@
         .appt-history-item .appt-services { font-size: 13px; color: var(--text-light); margin-top: 2px; }
         .appt-history-item .appt-notes { font-size: 12px; color: var(--soft-olive); margin-top: 4px; font-style: italic; }
         .appt-history-item .appt-status { font-size: 11px; }
-        .appt-notes-input { width: 100%; padding: 6px; border: 1px solid var(--lavender); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; margin-top: 6px; }
+        .appt-notes-input { width: 100%; padding: 6px; border: 1px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; margin-top: 6px; }
         .appt-actions { display: flex; gap: 8px; margin-top: 8px; }
 
         /* SLOT PICKER */
@@ -165,9 +165,13 @@
         .slot-btn:hover { border-color: var(--terracotta); background: rgba(196,125,90,0.05); }
         .slot-btn.selected { background: var(--terracotta); color: white; border-color: var(--terracotta); }
         .slot-btn.unavailable { background: #eee; color: #999; cursor: not-allowed; border-color: #ccc; }
+        .slot-btn.conflict { background: #FFF0E0; color: #B85C1E; border-color: #E8953A; position: relative; }
+        .slot-btn.conflict:hover { background: #FFE4CC; border-color: #C47D5A; }
+        .slot-btn.conflict::after { content: '⚠'; position: absolute; top: -2px; right: 2px; font-size: 10px; }
+        .slot-btn.conflict.selected { background: var(--terracotta); color: white; border-color: var(--terracotta); }
 
         /* SERVICE MULTI-SELECT */
-        .service-list { max-height: 150px; overflow-y: auto; border: 1px solid var(--lavender); border-radius: 4px; padding: 8px; background: white; }
+        .service-list { max-height: 150px; overflow-y: auto; border: 1px solid var(--gold); border-radius: 4px; padding: 8px; background: white; }
         .service-checkbox { display: flex; align-items: center; padding: 6px 0; }
         .service-checkbox input { margin-right: 8px; }
         .service-checkbox label { cursor: pointer; flex: 1; margin: 0; }
@@ -190,7 +194,7 @@
         .admin-cal-dot.confirmed { background: var(--soft-olive); }
         .admin-cal-dot.blocked { background: #ccc; }
         .admin-cal-appt-count { font-size: 11px; color: var(--text-light); margin-top: 2px; }
-        .admin-cal-day-detail-item { background: white; border: 1px solid var(--lavender); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .admin-cal-day-detail-item { background: white; border: 1px solid var(--gold); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .admin-cal-day-detail-item .time { font-weight: 700; color: var(--terracotta); min-width: 120px; }
         .admin-cal-day-detail-item .client { flex: 1; }
         .admin-cal-day-detail-item .services { font-size: 12px; color: var(--text-light); }
@@ -200,7 +204,7 @@
         .modal-form-group label { display: block; font-weight: 600; color: var(--deep-brown); margin-bottom: 6px; font-size: 13px; }
         .modal-form-group input[type="date"],
         .modal-form-group select,
-        .modal-form-group textarea { width: 100%; padding: 8px; border: 1px solid var(--lavender); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; }
+        .modal-form-group textarea { width: 100%; padding: 8px; border: 1px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 13px; }
         .modal-form-group input:focus,
         .modal-form-group select:focus,
         .modal-form-group textarea:focus { outline: none; border-color: var(--terracotta); background-color: rgba(196,125,90,0.05); }
@@ -271,7 +275,6 @@
                 <button class="tab-btn" data-tab="history">History</button>
                 <button class="tab-btn" data-tab="block">Block Times</button>
                 <button class="tab-btn" data-tab="clients">Client Directory</button>
-                <button class="tab-btn" data-tab="mixer">Mixer Calculator</button>
             </div>
 
             <!-- TODAY'S SCHEDULE -->
@@ -410,43 +413,6 @@
                     <div id="clientDetailContent"></div>
                 </div>
             </div>
-
-            <!-- MIXER CALCULATOR -->
-            <div class="tab-content" id="mixer">
-                <div style="max-width: 550px; margin: 0 auto; padding: 20px;">
-                    <h2 style="text-align: center; font-family: 'Playfair Display', serif; color: var(--deep-brown); margin-bottom: 15px;">Mixer Calculator</h2>
-                    <p style="text-align: center; color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">Enter the strength of two solutions <strong>A</strong> and <strong>B</strong>, your <strong>Desired Strength</strong>, and the <strong>Total Quantity</strong> (mL) you need.</p>
-                    <div style="background: var(--warm-beige); border-radius: 12px; padding: 25px; border: 1px solid var(--lavender);">
-                        <div style="display: grid; grid-template-columns: 160px 1fr 80px; gap: 15px; align-items: center;">
-                            <label style="font-weight: 700; color: var(--deep-brown); font-size: 15px;">Solution A:</label>
-                            <input type="number" id="mixSolA" placeholder="e.g. 3" step="any" style="padding: 10px 12px; border: 2px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; background: white;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; color: var(--deep-brown); font-size: 15px;">Solution B:</label>
-                            <input type="number" id="mixSolB" placeholder="e.g. 50" step="any" style="padding: 10px 12px; border: 2px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; background: white;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; color: var(--deep-brown); font-size: 15px;">Desired Strength:</label>
-                            <input type="number" id="mixDesired" placeholder="e.g. 20" step="any" style="padding: 10px 12px; border: 2px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; background: white;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; color: var(--deep-brown); font-size: 15px;">Total Quantity:</label>
-                            <input type="number" id="mixQty" placeholder="e.g. 30" step="any" style="padding: 10px 12px; border: 2px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; background: white;">
-                            <span style="color: var(--text-light); font-size: 13px;">mL</span>
-                        </div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button onclick="calculateMix()" style="background: linear-gradient(135deg, var(--terracotta), var(--soft-olive)); color: white; border: none; padding: 12px 35px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">Calculate</button>
-                            <button onclick="clearMixer()" style="background: transparent; color: var(--text-light); border: 1px solid var(--lavender); padding: 12px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Lato', sans-serif; margin-left: 10px;">Clear</button>
-                        </div>
-                    </div>
-                    <div id="mixResult" style="display: none; margin-top: 20px; background: linear-gradient(135deg, var(--gold), #E8C94A); border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <p id="mixResultText" style="color: var(--deep-brown); font-size: 16px; font-weight: 700; line-height: 1.6; margin: 0;"></p>
-                    </div>
-                    <div id="mixError" style="display: none; margin-top: 20px; background: rgba(215,38,56,0.1); border: 1px solid var(--queen-red); border-radius: 12px; padding: 15px; text-align: center;">
-                        <p id="mixErrorText" style="color: var(--queen-red); font-size: 14px; font-weight: 600; margin: 0;"></p>
-                    </div>
-                    <div style="margin-top: 25px; padding: 15px; background: rgba(201,177,208,0.15); border-radius: 8px; border: 1px dashed var(--lavender);">
-                        <p style="font-size: 13px; color: var(--text-light); line-height: 1.6; margin: 0;"><strong>Example:</strong> Solution A = 3, Solution B = 50, Desired = 20, Qty = 30 mL<br>Result: Mix 19 mL of A with 11 mL of B for a 20.23 strength solution.</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -537,46 +503,7 @@
         <p>330 South A St, Santa Rosa, CA 95401</p>
     </footer>
 
-    
-
-            <!-- MIXER CALCULATOR -->
-            <div class="tab-content" id="mixer">
-                <div style="max-width: 550px; margin: 0 auto; padding: 20px;">
-                    <h2 style="text-align: center; font-family: 'Playfair Display', serif; color: var(--deep-brown); margin-bottom: 15px;">Mixer Calculator</h2>
-                    <p style="text-align: center; color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">Enter the strength of two solutions <strong>A</strong> and <strong>B</strong>, your <strong>Desired Strength</strong>, and the <strong>Total Quantity</strong> (mL) you need.</p>
-                    <div style="background: var(--warm-beige); border-radius: 12px; padding: 25px; border: 1px solid var(--lavender);">
-                        <div style="display: grid; grid-template-columns: 160px 1fr 80px; gap: 15px; align-items: center;">
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Solution A:</label>
-                            <input type="number" id="mixSolA" step="any" placeholder="e.g. 3" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Solution B:</label>
-                            <input type="number" id="mixSolB" step="any" placeholder="e.g. 50" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Desired Strength:</label>
-                            <input type="number" id="mixDesired" step="any" placeholder="e.g. 20" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Total Quantity:</label>
-                            <input type="number" id="mixQty" step="any" placeholder="e.g. 30" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">mL</span>
-                        </div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button onclick="calculateMix()" style="background: linear-gradient(135deg, var(--terracotta), var(--soft-olive)); color: white; border: none; padding: 12px 40px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; letter-spacing: 0.5px;">Calculate</button>
-                            <button onclick="clearMixer()" style="background: transparent; color: var(--text-light); border: 1px solid var(--lavender); padding: 12px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Lato', sans-serif; margin-left: 10px;">Clear</button>
-                        </div>
-                    </div>
-                    <div id="mixResult" style="display: none; margin-top: 20px; background: linear-gradient(135deg, var(--gold), #E8C94A); border-radius: 12px; padding: 20px; text-align: center;">
-                        <p id="mixResultText" style="font-size: 16px; line-height: 1.8; color: var(--deep-brown); font-weight: 600;"></p>
-                    </div>
-                    <div id="mixError" style="display: none; margin-top: 20px; background: rgba(215,38,56,0.1); border: 1px solid var(--queen-red); border-radius: 12px; padding: 15px; text-align: center;">
-                        <p id="mixErrorText" style="color: var(--queen-red); font-weight: 600;"></p>
-                    </div>
-                    <div style="margin-top: 25px; padding: 15px; background: rgba(201,177,208,0.15); border-radius: 8px;">
-                        <p style="font-size: 13px; color: var(--text-light); text-align: center; margin: 0;"><strong>Example:</strong> Solution A = 3, Solution B = 50, Desired = 20, Qty = 30 mL<br>Result: Mix 19 mL of A with 11 mL of B for a 20.23 strength solution.</p>
-                    </div>
-                </div>
-            </div>
-
-        <script>
+    <script>
         // ═══ STATE ═══
         let authToken = localStorage.getItem('mimi_admin_token') || null;
         let allAppointments = [];
@@ -1684,16 +1611,25 @@
                 let slots = [];
                 if (override) {
                     // Generate all slots from 8 AM to 9 PM (assuming 30-min intervals)
+                    // Check existing appointments so Mimi can see conflicts
+                    const dayAppts = allAppointments.filter(a =>
+                        a.date === date && a.status !== 'cancelled'
+                    );
                     const interval = 30;
                     for (let hour = 8; hour < 21; hour++) {
                         for (let min = 0; min < 60; min += interval) {
                             const startMins = hour * 60 + min;
                             const endMins = startMins + durationMins;
                             if (endMins <= 21 * 60) {
+                                // Check if this slot overlaps any existing appointment
+                                const hasConflict = dayAppts.some(a =>
+                                    startMins < a.endTime && endMins > a.startTime
+                                );
                                 slots.push({
                                     startTime: startMins,
                                     endTime: endMins,
                                     available: true,
+                                    conflict: hasConflict,
                                     label: fmtTime(startMins)
                                 });
                             }
@@ -1718,15 +1654,20 @@
                 }
 
                 // Render slots
-                const slotsHtml = slots.map((slot, idx) => `
-                    <button type="button" class="slot-btn ${slot.available ? '' : 'unavailable'}"
+                const slotsHtml = slots.map((slot, idx) => {
+                    const classes = ['slot-btn'];
+                    if (!slot.available) classes.push('unavailable');
+                    if (slot.conflict) classes.push('conflict');
+                    return `
+                    <button type="button" class="${classes.join(' ')}"
                             id="slot${idx}"
                             data-start="${slot.startTime}"
                             data-end="${slot.endTime}"
-                            ${slot.available ? `onclick="selectBookSlot(${slot.startTime}, ${slot.endTime}, ${idx})"` : 'disabled'}>
+                            ${slot.available ? `onclick="selectBookSlot(${slot.startTime}, ${slot.endTime}, ${idx})"` : 'disabled'}
+                            ${slot.conflict ? `title="Overlaps existing appointment"` : ''}>
                         ${slot.label || fmtTime(slot.startTime)}
-                    </button>
-                `).join('');
+                    </button>`;
+                }).join('');
 
                 document.getElementById('bookTimeSlots').innerHTML = slotsHtml;
             } catch (e) {
@@ -1867,108 +1808,4 @@
             if (!window._editDuration) return;
             const newDur = window._editDuration + delta;
             if (newDur < 15) { showError('Minimum duration is 15 minutes'); return; }
-            if (newDur > 480) { showError('Maximum duration is 8 hours'); return; }
-            window._editDuration = newDur;
-            const h = Math.floor(newDur / 60);
-            const m = newDur % 60;
-            document.getElementById('editDurationDisplay').textContent = h > 0 ? `${h}h ${m > 0 ? m + 'min' : ''}` : `${m}min`;
-            // Update end time preview
-            const timeParts = document.getElementById('editApptTime').value.split(':');
-            if (timeParts.length === 2) {
-                const startMin = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
-                document.getElementById('editEndTimeDisplay').textContent = fmtTime(startMin + newDur);
-            }
-        }
-
-        async function submitEditAppointment() {
-            const apptId = currentEditingAppointmentId;
-            const date = document.getElementById('editApptDate').value;
-            const timeParts = document.getElementById('editApptTime').value.split(':');
-            const startTime = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
-            const status = document.getElementById('editApptStatus').value;
-            const notes = document.getElementById('editApptNotes').value;
-            const adminNotes = document.getElementById('editApptAdminNotes').value;
-
-            const duration = window._editDuration || 60;
-
-            try {
-                await apiCall('updateAppointment', {
-                    appointmentId: apptId,
-                    updates: {
-                        appointment_date: date,
-                        start_time: startTime,
-                        end_time: startTime + duration,
-                        total_duration: duration,
-                        status,
-                        notes,
-                        admin_notes: adminNotes
-                    }
-                });
-                showSuccess('Appointment updated');
-                closeEditAppointmentModal();
-                await loadAllData();
-                if (currentClientDetailId) {
-                    openClientDetail(currentClientDetailId);
-                }
-            } catch (error) {
-                showError('Failed to update appointment: ' + error.message);
-            }
-        }
-
-        function cancelApptWithConfirm(apptId) {
-            if (!confirm('Cancel and remove this appointment? This cannot be undone.')) return;
-            cancelAppt(apptId);
-        }
-
-
-        // MIXER CALCULATOR
-        function calculateMix() {
-            var solA = parseFloat(document.getElementById("mixSolA").value);
-            var solB = parseFloat(document.getElementById("mixSolB").value);
-            var desired = parseFloat(document.getElementById("mixDesired").value);
-            var qty = parseFloat(document.getElementById("mixQty").value);
-            document.getElementById("mixError").style.display = "none";
-            document.getElementById("mixResult").style.display = "none";
-            if (isNaN(solA) || isNaN(solB) || isNaN(desired) || isNaN(qty)) {
-                document.getElementById("mixErrorText").textContent = "Please fill in all four fields.";
-                document.getElementById("mixError").style.display = "block";
-                return;
-            }
-            if (qty <= 0) {
-                document.getElementById("mixErrorText").textContent = "Total Quantity must be greater than zero.";
-                document.getElementById("mixError").style.display = "block";
-                return;
-            }
-            if (desired < Math.min(solA, solB) || desired > Math.max(solA, solB)) {
-                document.getElementById("mixErrorText").textContent = "Desired Strength must be between Solution A and Solution B.";
-                document.getElementById("mixError").style.display = "block";
-                return;
-            }
-            if (solA === solB) {
-                document.getElementById("mixErrorText").textContent = "Solution A and Solution B must have different strengths.";
-                document.getElementById("mixError").style.display = "block";
-                return;
-            }
-            var partsA = Math.abs(solB - desired);
-            var partsB = Math.abs(desired - solA);
-            var totalParts = partsA + partsB;
-            var qtyA = Math.round(qty * partsA / totalParts);
-            var qtyB = qty - qtyA;
-            var actualStrength = (qtyA * solA + qtyB * solB) / qty;
-            actualStrength = Math.round(actualStrength * 100) / 100;
-            var resultText = "Mix " + qtyA + " mL of Solution A (" + solA + " strength) with " + qtyB + " mL of Solution B (" + solB + " strength). Yields " + qty + " mL of a " + actualStrength + " strength solution.";
-            document.getElementById("mixResultText").textContent = resultText;
-            document.getElementById("mixResult").style.display = "block";
-        }
-
-        function clearMixer() {
-            document.getElementById("mixSolA").value = "";
-            document.getElementById("mixSolB").value = "";
-            document.getElementById("mixDesired").value = "";
-            document.getElementById("mixQty").value = "";
-            document.getElementById("mixResult").style.display = "none";
-            document.getElementById("mixError").style.display = "none";
-        }
-    </script>
-</body>
-</html>
+       
