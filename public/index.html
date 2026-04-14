@@ -387,6 +387,7 @@
         <div class="reminder-timing">
           <button type="button" class="reminder-timing-btn selected" data-timing="6" onclick="selectReminderTiming(this)">6 hours before</button>
           <button type="button" class="reminder-timing-btn" data-timing="12" onclick="selectReminderTiming(this)">12 hours before</button>
+          <button type="button" class="reminder-timing-btn" data-timing="24" onclick="selectReminderTiming(this)">24 hours before</button>
         </div>
       </div>
     </div>
@@ -497,7 +498,7 @@ let selectedDate = null;
 let selectedTime = null;
 let calYear, calMonth;
 let isBooking = false;
-let reminderTiming = '6'; // '6' or '12' hours
+let reminderTiming = '6'; // '6', '12', or '24' hours
 let reminderMethod = 'email'; // 'email', 'text', or 'both'
 
 const OPEN_HOUR = 11;

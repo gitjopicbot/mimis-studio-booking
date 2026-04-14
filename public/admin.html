@@ -276,6 +276,7 @@
                 <button class="tab-btn" data-tab="block">Block Times</button>
                 <button class="tab-btn" data-tab="clients">Client Directory</button>
                 <button class="tab-btn" data-tab="mixer">Mixer Calculator</button>
+                <button class="tab-btn" data-tab="log">Appointment Log</button>
             </div>
 
             <!-- TODAY'S SCHEDULE -->
@@ -450,6 +451,27 @@
                         <p style="font-size: 13px; color: var(--text-light); line-height: 1.6; margin: 0;"><strong>Example:</strong> Solution A = 3, Solution B = 50, Desired = 20, Qty = 30 mL<br>Result: Mix 19 mL of A with 11 mL of B for a 20.23 strength solution.</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- APPOINTMENT LOG -->
+            <div class="tab-content" id="log">
+                <h2 class="section-title">Appointment Log</h2>
+                <p style="color:var(--text-light);margin-bottom:20px;">A running history of appointment creations and cancellations with timestamps.</p>
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label for="logFilter">Filter</label>
+                        <select id="logFilter" onchange="renderLog()">
+                            <option value="all">All events</option>
+                            <option value="created">Created only</option>
+                            <option value="cancelled">Cancelled only</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="logSearch">Search client</label>
+                        <input type="text" id="logSearch" placeholder="Client name..." oninput="renderLog()">
+                    </div>
+                </div>
+                <div id="logContent"></div>
             </div>
         </div>
     </div>
@@ -690,6 +712,7 @@
             else if (tabName === 'history') filterHistory();
             else if (tabName === 'block') renderBlockedTimes();
             else if (tabName === 'clients') { closeClientDetail(); filterClients(); }
+            else if (tabName === 'log') renderLog();
         }
 
         // âââ API âââ
@@ -733,7 +756,8 @@
                 notes: a.notes || '',
                 adminNotes: a.admin_notes || '',
                 services: (a.appointment_services || []).map(as => as.services ? as.services.name : '').filter(Boolean).join(', ') || 'N/A',
-                createdAt: a.created_at
+                createdAt: a.created_at,
+                updatedAt: a.updated_at
             }));
         }
 
@@ -810,7 +834,7 @@
                             <strong>Client:</strong> <a href="#" onclick="openClientFromAppt('${a.clientId}');return false;" style="color:var(--terracotta);">${a.clientName}</a><br>
                             <strong>Time:</strong> ${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}<br>
                             <strong>Services:</strong> ${a.services}<br>
-                            <strong>Phone:</strong> ${a.clientPhone || 'N/A'}
+                            <strong>Phone:</strong> ${a.clientPhone ? `<a href="tel:${a.clientPhone.replace(/[^0-9+]/g,'')}" style="color:var(--terracotta);font-weight:600;">${a.clientPhone}</a>` : 'N/A'}
                         </div>
                         <div>
                             <strong>Client Notes:</strong> ${a.notes || 'None'}<br>
@@ -969,20 +993,42 @@
             content.innerHTML = dayAppts.map(a => {
                 if (a.status === 'blocked') {
                     const reason = a.adminNotes || a.notes || 'Blocked';
-                    return `<div class="admin-cal-day-detail-item" style="background:rgba(217,83,79,0.08);border-left:3px solid #d9534f;">
-                        <span class="time">${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</span>
-                        <span class="client" style="color:#d9534f;font-weight:600;">Blocked</span>
-                        <span class="services" style="font-style:italic;color:#666;">${reason}</span>
-                        <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:rgba(217,83,79,0.15); color:#d9534f;">blocked</span>
+                    return `<div class="form-section" style="background:rgba(217,83,79,0.06);border-left:4px solid #d9534f;padding:12px 16px;margin-bottom:10px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                            <div>
+                                <strong>${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</strong>
+                                <span style="color:#d9534f;font-weight:600;margin-left:10px;">Blocked</span>
+                                <span style="color:#666;font-style:italic;margin-left:10px;">${reason}</span>
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="deleteAppt('${a.id}')">Remove</button>
+                        </div>
                     </div>`;
                 }
-                return `<div class="admin-cal-day-detail-item">
-                    <span class="time">${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</span>
-                    <span class="client">${a.clientName || 'Unknown'}</span>
-                    <span class="services">${a.services || ''}</span>
-                    <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:${a.status === 'confirmed' ? 'rgba(139,158,126,0.2)' : '#eee'}; color:${a.status === 'confirmed' ? 'var(--soft-olive)' : '#999'};">${a.status}</span>
+                const phoneLink = a.clientPhone ? `<a href="tel:${a.clientPhone.replace(/[^0-9+]/g,'')}" style="color:var(--terracotta);font-weight:600;">${a.clientPhone}</a>` : '';
+                return `<div class="form-section" style="padding:14px 16px;margin-bottom:10px;">
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;">
+                        <div>
+                            <div style="margin-bottom:6px;"><strong>${fmtTime(a.startTime)} - ${fmtTime(a.endTime)}</strong> &nbsp;&middot;&nbsp; <a href="#" onclick="openClientFromAppt('${a.clientId}');return false;" style="color:var(--terracotta);font-weight:600;">${a.clientName || 'Unknown'}</a> ${phoneLink ? '&nbsp;&middot;&nbsp; ' + phoneLink : ''}</div>
+                            <div style="color:#555;font-size:14px;">${a.services || ''}</div>
+                            ${a.notes ? `<div style="color:#666;font-size:13px;margin-top:4px;">&#128221; ${a.notes}</div>` : ''}
+                            ${a.adminNotes ? `<div style="color:var(--terracotta);font-size:13px;margin-top:2px;">&#9998; ${a.adminNotes}</div>` : ''}
+                        </div>
+                        <div class="action-buttons" style="flex-direction:column;gap:6px;">
+                            <button class="btn btn-primary btn-small" onclick="openEditAppointmentModal('${a.id}')">Edit</button>
+                            <button class="btn btn-secondary btn-small" onclick="openNotesModal('${a.id}')">Notes</button>
+                            <button class="btn btn-danger btn-small" onclick="cancelApptFromCalendar('${a.id}')">Cancel</button>
+                        </div>
+                    </div>
                 </div>`;
             }).join('');
+        }
+
+        async function cancelApptFromCalendar(id) {
+            await cancelApptWithConfirm(id);
+            if (adminCalSelectedDate) {
+                renderAdminCalendar();
+                showAdminCalDayDetail(adminCalSelectedDate);
+            }
         }
 
         // âââ RENDER: UPCOMING âââ
@@ -1051,6 +1097,47 @@
                     <div style="margin-top:10px;"><button class="btn btn-danger btn-small" onclick="deleteAppt('${a.id}')">Remove</button></div>
                 </div>
             `).join('');
+        }
+
+        // RENDER: APPOINTMENT LOG
+        function renderLog() {
+            const container = document.getElementById('logContent');
+            if (!container) return;
+            const filter = (document.getElementById('logFilter') || {}).value || 'all';
+            const search = ((document.getElementById('logSearch') || {}).value || '').toLowerCase();
+            const events = [];
+            allAppointments.forEach(a => {
+                if (a.status === 'blocked') return;
+                if (a.createdAt) events.push({ type: 'created', timestamp: a.createdAt, appt: a });
+                if (a.status === 'cancelled') events.push({ type: 'cancelled', timestamp: a.updatedAt || a.createdAt, appt: a });
+            });
+            let filtered = events.filter(e => {
+                if (filter !== 'all' && e.type !== filter) return false;
+                if (search && !(e.appt.clientName || '').toLowerCase().includes(search)) return false;
+                return true;
+            });
+            filtered.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No log events found.</p></div>';
+                return;
+            }
+            let html = '<table class="appointments-table"><thead><tr><th>Timestamp</th><th>Event</th><th>Client</th><th>Appointment</th><th>Services</th></tr></thead><tbody>';
+            html += filtered.map(e => {
+                const ts = e.timestamp ? new Date(e.timestamp) : null;
+                const tsStr = ts ? `${ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}<br><small>${ts.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</small>` : 'Unknown';
+                const color = e.type === 'created' ? 'rgba(139,158,126,0.2)' : 'rgba(217,83,79,0.15)';
+                const textColor = e.type === 'created' ? 'var(--soft-olive)' : '#d9534f';
+                const eventLabel = e.type === 'created' ? 'Created' : 'Cancelled';
+                return `<tr>
+                    <td>${tsStr}</td>
+                    <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${color};color:${textColor};font-weight:600;">${eventLabel}</span></td>
+                    <td><a href="#" onclick="openClientFromAppt('${e.appt.clientId}');return false;" style="color:var(--terracotta);font-weight:600;">${e.appt.clientName || 'Unknown'}</a></td>
+                    <td>${fmtDate(e.appt.date)}<br><small>${fmtTime(e.appt.startTime)} - ${fmtTime(e.appt.endTime)}</small></td>
+                    <td><small>${e.appt.services || ''}</small></td>
+                </tr>`;
+            }).join('');
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
         // âââ RENDER: CLIENTS âââ
@@ -1932,9 +2019,13 @@
             }
         }
 
-        function cancelApptWithConfirm(apptId) {
-            if (!confirm('Cancel and remove this appointment? This cannot be undone.')) return;
-            cancelAppt(apptId);
+        async function cancelApptWithConfirm(apptId) {
+            if (!confirm('Cancel this appointment? The client will remain in history as "cancelled".')) return;
+            try {
+                await apiCall('updateAppointment', { appointmentId: apptId, updates: { status: 'cancelled' } });
+                showSuccess('Appointment cancelled');
+                await loadAllData();
+            } catch (e) { console.error(e); showError('Failed to cancel appointment: ' + e.message); }
         }
 
 
