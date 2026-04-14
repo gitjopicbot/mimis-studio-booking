@@ -75,6 +75,9 @@ async function updateAppointment(appointmentId, updates) {
   }
   if (Object.keys(updateData).length === 0) throw new Error("No valid fields to update");
 
+  // Always stamp an updated_at so the appointment log can show when changes (e.g., cancellations) occurred
+  updateData.updated_at = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("appointments")
     .update(updateData)
