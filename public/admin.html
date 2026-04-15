@@ -2030,14 +2030,7 @@
                 await apiCall('updateAppointment', { appointmentId: apptId, updates: { status: 'cancelled' } });
                 showSuccess('Appointment for ' + name + ' cancelled');
                 await loadAllData();
-            } catch (e) {
-                console.error('Cancel via status update failed, trying delete:', e);
-                try {
-                    await apiCall('deleteAppointment', { appointmentId: apptId });
-                    showSuccess('Appointment for ' + name + ' cancelled and removed');
-                    await loadAllData();
-                } catch (e2) { console.error(e2); showError('Failed to cancel appointment: ' + e2.message); }
-            }
+            } catch (e) { console.error(e); showError('Failed to cancel: ' + e.message); }
         }
 
 
