@@ -75,9 +75,6 @@ async function updateAppointment(appointmentId, updates) {
   }
   if (Object.keys(updateData).length === 0) throw new Error("No valid fields to update");
 
-  // Always stamp an updated_at so the appointment log can show when changes (e.g., cancellations) occurred
-  updateData.updated_at = new Date().toISOString();
-
   const { data, error } = await supabase
     .from("appointments")
     .update(updateData)
@@ -86,6 +83,12 @@ async function updateAppointment(appointmentId, updates) {
 
   if (error) throw new Error(`Failed to update appointment: ${error.message}`);
   if (!data || data.length === 0) throw new Error("Appointment not found");
+
+  // Try to stamp updated_at separately (column may not exist yet)
+  try {
+    await supabase.from("appointments").update({ updated_at: new Date().toISOString() }).eq("id", appointmentId);
+  } catch (e) { /* column may not exist - that is fine */ }
+
   return data[0];
 }
 
