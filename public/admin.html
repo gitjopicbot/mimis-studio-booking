@@ -398,9 +398,11 @@
                 <!-- MERGE ZONE -->
                 <div class="merge-zone" id="mergeZone">
                     <div class="icon">&#x1F517;</div>
-                    <p><strong>Merge Mode:</strong> Drag a duplicate client card and drop it onto the client you want to keep.</p>
-                    <p style="font-size:13px;color:var(--text-light);margin-top:8px;">All appointments, phones, emails, and notes from the dragged client will be moved to the target.</p>
+                    <p><strong>Merge Mode:</strong> Tap the duplicate client to remove, then tap the client to keep.</p>
+                    <div id="mergeSelectionStatus" style="margin-top:10px;font-size:14px;color:var(--terracotta);font-weight:600;display:none;"></div>
+                    <p style="font-size:13px;color:var(--text-light);margin-top:8px;">All appointments, phones, emails, and notes from the removed client will be moved to the kept client.</p>
                     <div style="margin-top:15px;">
+                        <button class="btn btn-secondary btn-small" onclick="clearMergeSelection()" id="mergeClearBtn" style="display:none;margin-right:8px;">Clear Selection</button>
                         <button class="btn btn-secondary btn-small" onclick="toggleMergeMode()">Exit Merge Mode</button>
                     </div>
                 </div>
@@ -1167,11 +1169,7 @@
                 const emailsDisplay = c.emails.length > 0 ? c.emails.map(e => e.email).join(', ') : c.email || 'N/A';
                 return `
                 <div class="client-card" id="client-card-${c.id}"
-                     draggable="${mergeMode}"
-                     ondragstart="handleDragStart(event, '${c.id}')"
-                     ondragover="handleDragOver(event)"
-                     ondrop="handleDrop(event, '${c.id}')"
-                     onclick="openClientDetail('${c.id}')">
+                     onclick="${mergeMode ? `handleMergeClick('${c.id}')` : `openClientDetail('${c.id}')`}">
                     <span class="client-id-badge">ID: ${c.id.substring(0,8)}</span>
                     <h3>${c.name}</h3>
                     <div class="client-info">
@@ -1419,46 +1417,54 @@
             }
         }
 
-        // âââ DRAG & DROP MERGE âââ
+        // CLICK-TO-MERGE
         function toggleMergeMode() {
             mergeMode = !mergeMode;
             document.getElementById('mergeZone').classList.toggle('active', mergeMode);
-            filterClients(); // Re-render with draggable attribute
+            if (!mergeMode) clearMergeSelection();
+            filterClients();
         }
 
-        function handleDragStart(e, clientId) {
-            if (!mergeMode) return;
-            mergeSourceId = clientId;
-            e.dataTransfer.setData('text/plain', clientId);
-            e.dataTransfer.effectAllowed = 'move';
-            e.target.style.opacity = '0.5';
+        function clearMergeSelection() {
+            mergeSourceId = null;
+            mergeTargetId = null;
+            document.getElementById('mergeSelectionStatus').style.display = 'none';
+            document.getElementById('mergeClearBtn').style.display = 'none';
+            document.querySelectorAll('.client-card').forEach(el => {
+                el.style.borderColor = '';
+                el.style.background = '';
+                el.style.opacity = '1';
+            });
         }
 
-        function handleDragOver(e) {
+        function handleMergeClick(clientId) {
             if (!mergeMode) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            e.currentTarget.style.borderColor = 'var(--terracotta)';
-            e.currentTarget.style.background = 'rgba(196,125,90,0.08)';
-        }
 
-        function handleDrop(e, targetClientId) {
-            if (!mergeMode) return;
-            e.preventDefault();
-            e.currentTarget.style.borderColor = '';
-            e.currentTarget.style.background = '';
+            if (!mergeSourceId) {
+                mergeSourceId = clientId;
+                const sourceEl = document.getElementById(`client-card-${clientId}`);
+                if (sourceEl) {
+                    sourceEl.style.borderColor = '#d9534f';
+                    sourceEl.style.background = 'rgba(217,83,79,0.1)';
+                }
+                const source = allClients.find(c => c.id === clientId);
+                document.getElementById('mergeSelectionStatus').textContent = 'Selected "' + (source ? source.name : 'Unknown') + '" to remove. Now tap the client to KEEP.';
+                document.getElementById('mergeSelectionStatus').style.display = 'block';
+                document.getElementById('mergeClearBtn').style.display = 'inline-block';
+                return;
+            }
 
-            const sourceId = e.dataTransfer.getData('text/plain');
-            const sourceEl = document.getElementById(`client-card-${sourceId}`);
-            if (sourceEl) sourceEl.style.opacity = '1';
+            if (clientId === mergeSourceId) return;
 
-            if (sourceId === targetClientId) return;
+            mergeTargetId = clientId;
+            const targetEl = document.getElementById(`client-card-${clientId}`);
+            if (targetEl) {
+                targetEl.style.borderColor = 'var(--soft-olive)';
+                targetEl.style.background = 'rgba(139,158,126,0.1)';
+            }
 
-            mergeSourceId = sourceId;
-            mergeTargetId = targetClientId;
-
-            const source = allClients.find(c => c.id === sourceId);
-            const target = allClients.find(c => c.id === targetClientId);
+            const source = allClients.find(c => c.id === mergeSourceId);
+            const target = allClients.find(c => c.id === clientId);
 
             document.getElementById('mergeConfirmContent').innerHTML = `
                 <p style="margin-bottom:16px;">This will merge the following clients:</p>
@@ -1713,7 +1719,7 @@
                     <label>Services *</label>
                     ${servicesHtml}
                     <div style="margin-top: 8px; padding: 8px; background: rgba(196,125,90,0.1); border-radius: 4px;">
-                        <strong>Total Duration:</strong> <span id="bookTotalDuration">0</span> minutes
+                        <strong>Total Duration:</strong> <span id="bookTotalDuration">0 min</span>
                     </div>
                 </div>
                 <div class="modal-form-group">
@@ -1757,13 +1763,20 @@
             document.querySelectorAll('input[type="checkbox"][id^="bookService"]:checked').forEach(cb => {
                 total += parseInt(cb.dataset.duration || 30);
             });
-            document.getElementById('bookTotalDuration').textContent = total || 0;
+            const el = document.getElementById('bookTotalDuration');
+            if (total === 0) {
+                el.textContent = '0 min';
+            } else {
+                const hours = total / 60;
+                el.textContent = hours % 1 === 0 ? hours + (hours === 1 ? ' hour' : ' hours') : hours.toFixed(1) + ' hours';
+            }
+            el.dataset.minutes = total;
         }
 
         async function refreshBookSlots() {
             const date = document.getElementById('bookDate').value;
             const override = document.getElementById('bookOverrideHours').checked;
-            const durationMins = parseInt(document.getElementById('bookTotalDuration').textContent);
+            const durationMins = parseInt(document.getElementById('bookTotalDuration').dataset.minutes || '0');
 
             if (!date || durationMins === 0) {
                 document.getElementById('bookTimeSlots').innerHTML = '<p style="color: #999;">Select a date and services first</p>';
