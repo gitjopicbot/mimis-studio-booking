@@ -118,6 +118,15 @@ exports.handler = async (event) => {
     }
 
     // 3. Create appointment
+    //    Persist the chosen reminder timing (6/12/24 hrs) and method (email/text/both)
+    //    so send-reminders can honor the client's preference instead of guessing.
+    const reminderHoursValue = [6, 12, 24].includes(parseInt(reminderTiming, 10))
+      ? parseInt(reminderTiming, 10)
+      : 24;
+    const reminderMethodValue = ['email', 'text', 'both'].includes(reminderMethod)
+      ? reminderMethod
+      : 'email';
+
     const { data: appointment, error: apptErr } = await supabase
       .from('appointments')
       .insert({
@@ -126,7 +135,9 @@ exports.handler = async (event) => {
         start_time: startTime,
         end_time: endTime,
         total_duration: totalDuration,
-        notes
+        notes,
+        reminder_hours: reminderHoursValue,
+        reminder_method: reminderMethodValue
       })
       .select('id')
       .single();
