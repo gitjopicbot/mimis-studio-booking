@@ -11,6 +11,11 @@
 [functions."daily-schedule"]
   schedule = "0 3 * * *"
 
+# Run send-reminders every 15 minutes so 6/12/24-hour reminders fire
+# within ~15 min of the chosen window before each appointment.
+[functions."send-reminders"]
+  schedule = "*/15 * * * *"
+
 [[headers]]
   for = "/*"
   [headers.values]
