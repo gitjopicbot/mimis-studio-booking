@@ -19,10 +19,11 @@ exports.handler = async (event) => {
     const {
       firstName, lastName, email, phone,
       remindEmail, remindSms, remindBrowser,
-      reminderTiming, reminderMethod,
       notes, date, startTime, endTime,
       totalDuration, serviceIds, serviceNames
     } = body;
+    // Reminders are now mandatory — every appointment gets a 24hr email reminder,
+    // regardless of how it was created (client booking, admin, or bulk import).
 
     console.log('Booking request:', { firstName, lastName, email, date, startTime, serviceNames });
 
@@ -117,16 +118,7 @@ exports.handler = async (event) => {
       });
     }
 
-    // 3. Create appointment
-    //    Persist the chosen reminder timing (6/12/24 hrs) and method (email/text/both)
-    //    so send-reminders can honor the client's preference instead of guessing.
-    const reminderHoursValue = [6, 12, 24].includes(parseInt(reminderTiming, 10))
-      ? parseInt(reminderTiming, 10)
-      : 24;
-    const reminderMethodValue = ['email', 'text', 'both'].includes(reminderMethod)
-      ? reminderMethod
-      : 'email';
-
+    // 3. Create appointment — always schedule a mandatory 24hr email reminder.
     const { data: appointment, error: apptErr } = await supabase
       .from('appointments')
       .insert({
@@ -136,8 +128,8 @@ exports.handler = async (event) => {
         end_time: endTime,
         total_duration: totalDuration,
         notes,
-        reminder_hours: reminderHoursValue,
-        reminder_method: reminderMethodValue
+        reminder_hours: 24,
+        reminder_method: 'email'
       })
       .select('id')
       .single();

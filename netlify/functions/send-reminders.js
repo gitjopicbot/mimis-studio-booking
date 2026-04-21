@@ -8,7 +8,15 @@ const supabase = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ─── TIMEZONE HELPERS (salon is in Santa Rosa, CA — America/Los_Angeles) ─────
+// ─── POLICY ─────────────────────────────────────────────────────────────────
+// Every appointment on Mimi's books gets a mandatory 24-hour email reminder,
+// regardless of how it was created (client booking, admin, or bulk import
+// from ApptGo). Client-level opt-outs are intentionally ignored — Mimi wants
+// everyone reminded.
+
+const REMINDER_HOURS = 24;
+
+// ─── TIMEZONE HELPERS (salon is in Santa Rosa, CA — America/Los_Angeles) ────
 //
 // Appointments are stored as:
 //   appointment_date  (DATE, interpreted as PT calendar date)
@@ -21,13 +29,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const SALON_TZ = 'America/Los_Angeles';
 
-// Returns "now" as a Date whose .getTime() = current PT wall-clock parsed as UTC.
 function nowInSalonTz() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: SALON_TZ }));
 }
 
-// Returns a Date for a given salon-local appointment_date + minutes-from-midnight,
-// using the same "wall-clock as UTC" representation. TZ-independent on Node.
 function apptInSalonTz(dateStr, minutesFromMidnight) {
   const [y, m, d] = dateStr.split('-').map(Number);
   const h = Math.floor(minutesFromMidnight / 60);
@@ -35,7 +40,6 @@ function apptInSalonTz(dateStr, minutesFromMidnight) {
   return new Date(Date.UTC(y, m - 1, d, h, min));
 }
 
-// Returns today's PT calendar date as "YYYY-MM-DD".
 function salonDateStr(offsetDays = 0) {
   const d = nowInSalonTz();
   d.setUTCDate(d.getUTCDate() + offsetDays);
@@ -53,15 +57,15 @@ exports.handler = async (event) => {
 
     console.log(`[send-reminders] Running at PT ${nowPt.toISOString().replace('Z','')} — scanning ${todayStr} and ${tomorrowStr}`);
 
-    // Pull any confirmed appointments today or tomorrow (PT) whose reminder
-    // hasn't gone out yet. We reuse reminder_24h_sent as the single "reminder
-    // has been sent" flag — regardless of whether reminder_hours is 6/12/24.
+    // Any confirmed appointment today or tomorrow (PT) whose 24hr reminder
+    // hasn't gone out yet. We use reminder_24h_sent as the single "reminder
+    // has been sent" flag.
     const { data: upcoming, error } = await supabase
       .from('appointments')
       .select(`
         id, appointment_date, start_time, end_time, total_duration,
-        reminder_24h_sent, reminder_hours, reminder_method,
-        clients (first_name, last_name, email, phone, remind_email, remind_sms),
+        reminder_24h_sent,
+        clients (first_name, last_name, email, phone),
         appointment_services (services (name))
       `)
       .in('appointment_date', [todayStr, tomorrowStr])
@@ -78,40 +82,34 @@ exports.handler = async (event) => {
       const apptPt = apptInSalonTz(appt.appointment_date, appt.start_time);
       const hoursUntil = (apptPt.getTime() - nowPt.getTime()) / (1000 * 60 * 60);
 
-      // Fall back to 24 for legacy rows that predate the migration
-      const windowHours = [6, 12, 24].includes(appt.reminder_hours) ? appt.reminder_hours : 24;
-      const method = appt.reminder_method || 'email';
-
       const client = appt.clients;
       const serviceNames = appt.appointment_services?.map(as => as.services.name) || [];
       const label = `appt ${appt.id.slice(0, 8)} (${client?.first_name || '?'} @ ${appt.appointment_date} ${formatTime(appt.start_time)})`;
 
-      // Skip past appointments
+      // Skip appointments that have already passed — no point pinging someone
+      // about something that already happened.
       if (hoursUntil <= 0) {
         skipped++;
         details.push(`${label}: SKIP (already passed, ${hoursUntil.toFixed(1)}hr)`);
         continue;
       }
 
-      // Not yet within the reminder window
-      if (hoursUntil > windowHours) {
+      // Not yet within the 24hr reminder window
+      if (hoursUntil > REMINDER_HOURS) {
         skipped++;
-        details.push(`${label}: WAIT (${hoursUntil.toFixed(1)}hr until, window=${windowHours}hr)`);
+        details.push(`${label}: WAIT (${hoursUntil.toFixed(1)}hr until)`);
         continue;
       }
 
-      // Client doesn't want email reminders
-      // (method can be 'email', 'text', or 'both' — SMS not implemented yet,
-      // so 'text'-only effectively means no reminder until that's added)
-      const wantsEmail = (method === 'email' || method === 'both') && client?.remind_email !== false;
-      if (!wantsEmail || !client?.email) {
-        // Mark as "sent" so we don't keep checking — client opted out of email.
+      // Mandatory reminder — but we still need an email address to send to.
+      // Client-level opt-outs (remind_email=false) are intentionally ignored.
+      if (!client?.email) {
         await supabase
           .from('appointments')
           .update({ reminder_24h_sent: true })
           .eq('id', appt.id);
         skipped++;
-        details.push(`${label}: SKIP (email reminders off or no email)`);
+        details.push(`${label}: SKIP (no email on file)`);
         continue;
       }
 
@@ -120,13 +118,12 @@ exports.handler = async (event) => {
         const emailResult = await resend.emails.send({
           from: "Mimi's Studio <bookings@mimisstudio1.com>",
           to: client.email,
-          subject: buildSubject(windowHours, appt.appointment_date, todayStr),
+          subject: buildSubject(appt.appointment_date, todayStr),
           html: reminderEmailHtml({
             firstName: client.first_name,
             date: appt.appointment_date,
             time: formatTime(appt.start_time),
             services: serviceNames,
-            hoursAhead: windowHours,
             isToday: appt.appointment_date === todayStr
           })
         });
@@ -137,7 +134,7 @@ exports.handler = async (event) => {
           .eq('id', appt.id);
 
         sent++;
-        details.push(`${label}: SENT (${windowHours}hr reminder, hoursUntil=${hoursUntil.toFixed(1)}, resend id=${emailResult?.data?.id || 'n/a'})`);
+        details.push(`${label}: SENT (hoursUntil=${hoursUntil.toFixed(1)}, resend id=${emailResult?.data?.id || 'n/a'})`);
       } catch (e) {
         console.error(`[send-reminders] ${label}: ERROR —`, e.message);
         details.push(`${label}: ERROR (${e.message})`);
@@ -170,14 +167,11 @@ exports.handler = async (event) => {
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
-function buildSubject(windowHours, apptDateStr, todayStr) {
+function buildSubject(apptDateStr, todayStr) {
   if (apptDateStr === todayStr) {
     return "Reminder: Your appointment at Mimi's Studio is today!";
   }
-  if (windowHours === 24) {
-    return "Reminder: Your appointment at Mimi's Studio is tomorrow!";
-  }
-  return `Reminder: Your appointment at Mimi's Studio is in ${windowHours} hours`;
+  return "Reminder: Your appointment at Mimi's Studio is tomorrow!";
 }
 
 function formatTime(mins) {
@@ -188,18 +182,15 @@ function formatTime(mins) {
   return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-function reminderEmailHtml({ firstName, date, time, services, hoursAhead, isToday }) {
+function reminderEmailHtml({ firstName, date, time, services, isToday }) {
   const dateObj = new Date(date + 'T12:00:00');
   const dateFormatted = dateObj.toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   });
 
-  let banner = '';
-  if (isToday) {
-    banner = `<div style="background: #C47D5A; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px;">Your appointment is today!</div>`;
-  } else if (hoursAhead <= 12) {
-    banner = `<div style="background: #C47D5A; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px;">Your appointment is in about ${hoursAhead} hours</div>`;
-  }
+  const banner = isToday
+    ? `<div style="background: #C47D5A; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px;">Your appointment is today!</div>`
+    : '';
 
   return `
   <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FDF6EC;">
@@ -209,14 +200,14 @@ function reminderEmailHtml({ firstName, date, time, services, hoursAhead, isToda
     </div>
     ${banner}
     <div style="padding: 30px;">
-      <p style="color: #3A2820; font-size: 16px;">Hi ${firstName},</p>
+      <p style="color: #3A2820; font-size: 16px;">Hi ${firstName || 'there'},</p>
       <p style="color: #6B5347; font-size: 15px; line-height: 1.6;">
         Just a friendly reminder about your upcoming appointment:
       </p>
       <div style="background: #F5E6D3; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
         <p style="font-size: 18px; color: #5C3D2E; font-weight: bold; margin: 0 0 5px;">${dateFormatted}</p>
         <p style="font-size: 24px; color: #C47D5A; font-weight: bold; margin: 0;">${time}</p>
-        <p style="font-size: 14px; color: #6B5347; margin: 10px 0 0;">${services.join(' + ')}</p>
+        ${services.length ? `<p style="font-size: 14px; color: #6B5347; margin: 10px 0 0;">${services.join(' + ')}</p>` : ''}
       </div>
       <p style="color: #6B5347; font-size: 14px; line-height: 1.6;">
         Need to reschedule? Please call or text Mimi as soon as possible.
