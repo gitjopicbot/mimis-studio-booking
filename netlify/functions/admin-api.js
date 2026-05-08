@@ -78,8 +78,15 @@ async function updateAppointment(appointmentId, updates) {
   }
   if (Object.keys(updateData).length === 0) throw new Error("No valid fields to update");
 
-  // Always stamp an updated_at so the appointment log can show when changes (e.g., cancellations) occurred
-  updateData.updated_at = new Date().toISOString();
+  const now = new Date().toISOString();
+  // Always stamp an updated_at so the appointment log can show when changes (e.g., reschedules) occurred
+  updateData.updated_at = now;
+
+  // If this update is cancelling the appointment, snapshot a separate cancelled_at
+  // timestamp so the log can distinguish cancellations from other edits.
+  if (updates.status === "cancelled") {
+    updateData.cancelled_at = now;
+  }
 
   const { data, error } = await supabase
     .from("appointments")
@@ -150,6 +157,15 @@ async function addAdminNote(appointmentId, adminNotes) {
 }
 
 async function adminBookAppointment(clientId, date, startTime, endTime, totalDuration, serviceIds, notes, adminNotes) {
+  // Look up the client's current email so we can snapshot it on the appointment
+  // (booking_email is a record of what email was used when this appointment was created)
+  const { data: clientForEmail } = await supabase
+    .from("clients")
+    .select("email")
+    .eq("id", clientId)
+    .single();
+  const bookingEmail = clientForEmail && clientForEmail.email ? clientForEmail.email : null;
+
   // Create appointment record
   const { data: apptData, error: apptError } = await supabase
     .from("appointments")
@@ -163,6 +179,8 @@ async function adminBookAppointment(clientId, date, startTime, endTime, totalDur
       notes: notes || "",
       admin_notes: adminNotes || "",
       created_at: new Date().toISOString(),
+      created_by: "admin",
+      booking_email: bookingEmail,
     }])
     .select();
 

@@ -129,7 +129,9 @@ exports.handler = async (event) => {
         total_duration: totalDuration,
         notes,
         reminder_hours: 24,
-        reminder_method: 'email'
+        reminder_method: 'email',
+        created_by: 'client',
+        booking_email: email
       })
       .select('id')
       .single();
