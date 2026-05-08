@@ -9,25 +9,40 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream: #FFF8F0;
-    --warm-beige: #F3ECF6;
-    --terracotta: #2E6B8A;
-    --terracotta-light: #4A8DB0;
-    --deep-brown: #4A2040;
-    --soft-olive: #5B8C5A;
-    --olive-light: #7BAF7A;
-    --gold: #D4A843;
-    --gold-light: #C9B1D0;
-    --text-dark: #2D1B35;
-    --text-medium: #5C4566;
-    --text-light: #8A7494;
+    /* Early-Summer / Blue palette — primary tokens */
+    --ivory: #FAF6EC;
+    --ivory-deeper: #ECE3D0;
+    --sky-pale: #E0EEF5;
+    --sky: #BDD9E8;
+    --periwinkle: #8FA8C9;
+    --cornflower: #6B91B5;
+    --cornflower-deep: #466B8E;
+    --navy: #2C3E55;
+    --coral-pale: #F4D3C5;
+    --coral: #E8A78F;
+    --coral-deep: #C97D5C;
+    --gold: #C9A961;
+    --gold-deep: #A88A4A;
+    --gold-light: #E8D4A0;
+
+    /* Legacy aliases — kept so existing CSS keeps working after the palette swap */
+    --cream: #FAF6EC;
+    --warm-beige: #ECE3D0;
+    --terracotta: #6B91B5;
+    --terracotta-light: #8FA8C9;
+    --deep-brown: #466B8E;
+    --soft-olive: #C9A961;
+    --olive-light: #E8D4A0;
+    --text-dark: #2C3E55;
+    --text-medium: #5C6B82;
+    --text-light: #95A0B0;
     --white: #FFFFFF;
-    --shadow: rgba(74, 32, 64, 0.08);
-    --shadow-md: rgba(74, 32, 64, 0.14);
-    --queen-red: #D72638;
-    --queen-red-dark: #B71E2E;
-    --rose-pink: #E8A0BF;
-    --magenta-bg: #F8EEF5;
+    --shadow: rgba(44, 62, 85, 0.08);
+    --shadow-md: rgba(44, 62, 85, 0.16);
+    --queen-red: #C97D5C;
+    --queen-red-dark: #A56247;
+    --rose-pink: #E8A78F;
+    --magenta-bg: #E0EEF5;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,7 +73,7 @@
 
   /* HEADER */
   header {
-    background: linear-gradient(135deg, var(--deep-brown) 0%, #6B3A5E 100%);
+    background: linear-gradient(135deg, var(--cornflower-deep) 0%, var(--cornflower) 55%, var(--periwinkle) 100%);
     color: var(--cream);
     text-align: center;
     padding: 2.5rem 1rem 2rem;
@@ -69,17 +84,22 @@
     content: '';
     position: absolute; top: -50%; left: -50%;
     width: 200%; height: 200%;
-    background: radial-gradient(ellipse, rgba(212,168,67,0.12) 0%, transparent 60%);
+    background: radial-gradient(ellipse, rgba(232,212,160,0.18) 0%, transparent 60%);
     pointer-events: none;
   }
+  .hero-flower-tr { position: absolute; top: 14px; right: 18px; width: 56px; height: 56px; opacity: 0.7; pointer-events: none; }
+  .hero-flower-bl { position: absolute; bottom: 14px; left: 20px; width: 44px; height: 44px; opacity: 0.65; pointer-events: none; }
   header h1 { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 0.3rem; position: relative; }
   header p { font-size: 1.05rem; font-weight: 300; opacity: 0.9; letter-spacing: 2px; text-transform: uppercase; position: relative; }
   /* FOOTER */
   .site-footer {
-    background: linear-gradient(135deg, var(--magenta-bg) 0%, #F0E0F0 50%, var(--warm-beige) 100%);
+    background: linear-gradient(135deg, var(--coral-pale) 0%, var(--ivory-deeper) 50%, var(--sky-pale) 100%);
     color: var(--text-dark); text-align: center; padding: 2.5rem 1rem; margin-top: 2rem;
     border-top: 3px solid var(--gold-light);
+    position: relative; overflow: hidden;
   }
+  .footer-horseshoe { position: absolute; bottom: 18px; right: 22px; width: 60px; height: 60px; opacity: 0.55; color: var(--gold-deep); pointer-events: none; }
+  .footer-flower-l { position: absolute; bottom: 22px; left: 24px; width: 50px; height: 50px; opacity: 0.7; pointer-events: none; }
   .footer-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.6rem; color: var(--deep-brown); }
   .footer-info { font-size: 1rem; line-height: 2; }
   .footer-info a { color: var(--queen-red); text-decoration: none; font-weight: 700; font-size: 1.05rem; transition: color 0.2s; }
@@ -141,7 +161,7 @@
     box-shadow: 0 1px 4px var(--shadow);
   }
   .service-card:hover { border-color: var(--terracotta-light); box-shadow: 0 3px 12px var(--shadow-md); transform: translateY(-1px); }
-  .service-card.selected { border-color: var(--terracotta); background: linear-gradient(135deg, #F0F7FC, var(--cream)); box-shadow: 0 3px 12px var(--shadow-md); }
+  .service-card.selected { border-color: var(--terracotta); background: linear-gradient(135deg, var(--sky-pale), var(--cream)); box-shadow: 0 3px 12px var(--shadow-md); }
   .service-card.selected .svc-check { background: var(--terracotta); border-color: var(--terracotta); color: var(--white); }
   .svc-info h4 { font-size: 0.92rem; font-weight: 500; color: var(--text-dark); }
   .svc-duration { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
@@ -170,7 +190,7 @@
   }
   .btn-primary { background: var(--terracotta); color: var(--white); }
   .btn-primary:hover { background: var(--deep-brown); }
-  .btn-primary:disabled { background: #C4B8CA; cursor: not-allowed; }
+  .btn-primary:disabled { background: var(--text-light); opacity: 0.5; cursor: not-allowed; }
   .btn-secondary { background: transparent; color: var(--terracotta); border: 2px solid var(--terracotta); }
   .btn-secondary:hover { background: var(--terracotta); color: var(--white); }
   .btn-row { display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end; flex-wrap: wrap; }
@@ -187,20 +207,20 @@
   .cal-day:hover:not(.disabled):not(.empty) { background: var(--warm-beige); }
   .cal-day.selected { background: var(--terracotta); color: var(--white); font-weight: 600; }
   .cal-day.today { border: 2px solid var(--gold); }
-  .cal-day.disabled { color: #D0C4D4; cursor: default; }
+  .cal-day.disabled { color: var(--text-light); opacity: 0.45; cursor: default; }
   .cal-day.empty { cursor: default; }
 
   /* TIME SLOTS */
   .time-slots-wrapper { background: var(--white); border-radius: 14px; padding: 1.5rem; box-shadow: 0 2px 12px var(--shadow); }
   .time-slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.6rem; margin-top: 1rem; }
   .time-slot {
-    padding: 0.7rem; border: 2px solid #E4DAE8; border-radius: 8px;
+    padding: 0.7rem; border: 2px solid var(--ivory-deeper); border-radius: 8px;
     text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500;
     transition: all 0.2s; color: var(--text-medium);
   }
-  .time-slot:hover { border-color: var(--terracotta-light); background: #FFF5FA; }
+  .time-slot:hover { border-color: var(--terracotta-light); background: var(--sky-pale); }
   .time-slot.selected { border-color: var(--terracotta); background: var(--terracotta); color: var(--white); }
-  .time-slot.unavailable { background: #F3EEF5; color: #C4B8CA; cursor: not-allowed; border-color: #E4DAE8; text-decoration: line-through; }
+  .time-slot.unavailable { background: var(--ivory-deeper); color: var(--text-light); cursor: not-allowed; border-color: var(--ivory-deeper); text-decoration: line-through; }
 
   /* FORM */
   .form-card { background: var(--white); border-radius: 14px; padding: 2rem; box-shadow: 0 2px 12px var(--shadow); }
@@ -209,7 +229,7 @@
   .form-group.full { grid-column: 1 / -1; }
   .form-group label { font-weight: 500; font-size: 0.85rem; color: var(--text-medium); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
   .form-group input, .form-group select, .form-group textarea {
-    font-family: 'Lato', sans-serif; padding: 0.75rem 1rem; border: 2px solid #E4DAE8;
+    font-family: 'Lato', sans-serif; padding: 0.75rem 1rem; border: 2px solid var(--ivory-deeper);
     border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s;
     background: var(--cream); color: var(--text-dark);
   }
@@ -263,6 +283,34 @@
 
 <!-- HEADER -->
 <header>
+  <!-- Hydrangea cluster (top right) -->
+  <svg class="hero-flower-tr" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g transform="translate(30 18)"><circle cx="-3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="-3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="0" r="1.5" fill="#C9A961"/></g>
+    <g transform="translate(20 26)"><circle cx="-3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="-3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="0" r="1.5" fill="#C9A961"/></g>
+    <g transform="translate(40 26)"><circle cx="-3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="-3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="0" r="1.5" fill="#C9A961"/></g>
+    <g transform="translate(30 34)"><circle cx="-3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="-3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="0" r="1.5" fill="#C9A961"/></g>
+    <g transform="translate(22 42)"><circle cx="-3" cy="0" r="3" fill="#FAF6EC"/><circle cx="3" cy="0" r="3" fill="#FAF6EC"/><circle cx="0" cy="-3" r="3" fill="#FAF6EC"/><circle cx="0" cy="3" r="3" fill="#FAF6EC"/><circle cx="0" cy="0" r="1.3" fill="#C9A961"/></g>
+    <g transform="translate(40 42)"><circle cx="-3" cy="0" r="3" fill="#FAF6EC"/><circle cx="3" cy="0" r="3" fill="#FAF6EC"/><circle cx="0" cy="-3" r="3" fill="#FAF6EC"/><circle cx="0" cy="3" r="3" fill="#FAF6EC"/><circle cx="0" cy="0" r="1.3" fill="#C9A961"/></g>
+  </svg>
+  <!-- Forget-me-nots (bottom left) -->
+  <svg class="hero-flower-bl" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g transform="translate(20 20)">
+      <ellipse cx="0" cy="-6" rx="3.5" ry="4.5" fill="#FAF6EC"/>
+      <ellipse cx="6" cy="-2" rx="4.5" ry="3.5" fill="#FAF6EC"/>
+      <ellipse cx="-6" cy="-2" rx="4.5" ry="3.5" fill="#FAF6EC"/>
+      <ellipse cx="-3" cy="5" rx="4" ry="3.5" fill="#FAF6EC" transform="rotate(-30 -3 5)"/>
+      <ellipse cx="3" cy="5" rx="4" ry="3.5" fill="#FAF6EC" transform="rotate(30 3 5)"/>
+      <circle cx="0" cy="0" r="2" fill="#C9A961"/>
+    </g>
+    <g transform="translate(40 35)">
+      <ellipse cx="0" cy="-5" rx="3" ry="4" fill="#BDD9E8"/>
+      <ellipse cx="5" cy="-1" rx="4" ry="3" fill="#BDD9E8"/>
+      <ellipse cx="-5" cy="-1" rx="4" ry="3" fill="#BDD9E8"/>
+      <ellipse cx="-2.5" cy="4" rx="3.5" ry="3" fill="#BDD9E8" transform="rotate(-30 -2.5 4)"/>
+      <ellipse cx="2.5" cy="4" rx="3.5" ry="3" fill="#BDD9E8" transform="rotate(30 2.5 4)"/>
+      <circle cx="0" cy="0" r="1.6" fill="#C9A961"/>
+    </g>
+  </svg>
   <h1>Mimi's Studio</h1>
   <p>Hair &middot; Color &middot; Waxing &middot; Beauty</p>
 </header>
@@ -409,6 +457,18 @@
 
 <!-- FOOTER -->
 <footer class="site-footer">
+  <!-- Horseshoe (gold, bottom right) -->
+  <svg class="footer-horseshoe" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" fill="currentColor" aria-hidden="true">
+    <path d="M30 6 C18 6 10 14 10 26 L10 46 C10 51 13 54 18 54 C22 54 25 51 25 46 L25 30 C25 27 27 25 30 25 C33 25 35 27 35 30 L35 46 C35 51 38 54 42 54 C47 54 50 51 50 46 L50 26 C50 14 42 6 30 6 Z M30 12 C38 12 44 18 44 26 L44 44 L40 44 L40 30 C40 24 36 20 30 20 C24 20 20 24 20 30 L20 44 L16 44 L16 26 C16 18 22 12 30 12 Z"/>
+    <circle cx="14" cy="22" r="1.4"/><circle cx="14" cy="34" r="1.4"/><circle cx="46" cy="22" r="1.4"/><circle cx="46" cy="34" r="1.4"/>
+  </svg>
+  <!-- Hydrangea (bottom left) -->
+  <svg class="footer-flower-l" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g transform="translate(30 18)"><circle cx="-3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="3.5" cy="0" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="-3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="3.5" r="3.5" fill="#BDD9E8"/><circle cx="0" cy="0" r="1.5" fill="#C9A961"/></g>
+    <g transform="translate(20 30)"><circle cx="-3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="-3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="3.5" r="3.5" fill="#8FA8C9"/></g>
+    <g transform="translate(40 30)"><circle cx="-3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="3.5" cy="0" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="-3.5" r="3.5" fill="#8FA8C9"/><circle cx="0" cy="3.5" r="3.5" fill="#8FA8C9"/></g>
+    <g transform="translate(30 42)"><circle cx="-3.5" cy="0" r="3.5" fill="#6B91B5"/><circle cx="3.5" cy="0" r="3.5" fill="#6B91B5"/><circle cx="0" cy="-3.5" r="3.5" fill="#6B91B5"/><circle cx="0" cy="3.5" r="3.5" fill="#6B91B5"/></g>
+  </svg>
   <div class="footer-title">Mimi's Studio</div>
   <div class="footer-info">
     <div style="color:var(--text-medium);font-size:0.95rem;margin-top:0.3rem;font-weight:400;">330 South A St, Santa Rosa, CA 95401</div>

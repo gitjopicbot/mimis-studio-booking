@@ -9,18 +9,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --cream: #FFF8F0;
-            --terracotta: #2E6B8A;
-            --deep-brown: #4A2040;
-            --soft-olive: #5B8C5A;
-            --gold: #D4A843;
-            --warm-beige: #F3ECF6;
-            --text-dark: #2D1B35;
-            --text-light: #8A7494;
-                --queen-red: #D72638;
-                --queen-red-dark: #B71E2E;
-                --lavender: #C9B1D0;
-                --lavender-bg: #F3ECF6;
+            /* Early-Summer / Blue palette — primary tokens */
+            --ivory: #FAF6EC;
+            --ivory-deeper: #ECE3D0;
+            --sky-pale: #E0EEF5;
+            --sky: #BDD9E8;
+            --periwinkle: #8FA8C9;
+            --cornflower: #6B91B5;
+            --cornflower-deep: #466B8E;
+            --navy: #2C3E55;
+            --coral-pale: #F4D3C5;
+            --coral: #E8A78F;
+            --coral-deep: #C97D5C;
+            --gold: #C9A961;
+            --gold-deep: #A88A4A;
+            --gold-light: #E8D4A0;
+
+            /* Legacy aliases — remapped to the new palette */
+            --cream: #FAF6EC;
+            --terracotta: #6B91B5;
+            --deep-brown: #466B8E;
+            --soft-olive: #C9A961;
+            --warm-beige: #ECE3D0;
+            --text-dark: #2C3E55;
+            --text-light: #95A0B0;
+            --queen-red: #C97D5C;
+            --queen-red-dark: #A56247;
+            --lavender: #BDD9E8;
+            --lavender-bg: #E0EEF5;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Lato', sans-serif; background-color: var(--cream); color: var(--deep-brown); line-height: 1.6; }
@@ -34,10 +50,10 @@
         .back-link { color: var(--gold); text-decoration: none; font-size: 14px; transition: color 0.3s; }
         .back-link:hover { color: var(--cream); }
         .logout-btn { background-color: var(--terracotta); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: background-color 0.3s; }
-        .logout-btn:hover { background-color: #245A75; }
+        .logout-btn:hover { background-color: var(--cornflower-deep); }
 
         /* LOGIN */
-        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--deep-brown) 0%, var(--soft-olive) 100%); padding: 20px; }
+        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, var(--cornflower-deep) 0%, var(--cornflower) 55%, var(--periwinkle) 100%); padding: 20px; }
         .login-card { background-color: var(--cream); padding: 40px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
         .login-card h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 10px; color: var(--deep-brown); text-align: center; }
         .login-card p { text-align: center; color: var(--soft-olive); margin-bottom: 30px; font-size: 14px; }
@@ -46,7 +62,7 @@
         .form-group input { width: 100%; padding: 12px; border: 2px solid var(--gold); border-radius: 4px; font-family: 'Lato', sans-serif; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: var(--terracotta); }
         .login-btn { width: 100%; padding: 12px; background-color: var(--terracotta); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; }
-        .login-btn:hover { background-color: #245A75; }
+        .login-btn:hover { background-color: var(--cornflower-deep); }
         .login-btn:disabled { background-color: var(--soft-olive); cursor: not-allowed; }
         .login-error { color: #d9534f; font-size: 14px; margin-top: 15px; padding: 10px; background-color: rgba(217,83,79,0.1); border-radius: 4px; display: none; }
 
@@ -76,8 +92,8 @@
 
         /* STATUS */
         .status-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-confirmed { background-color: rgba(139,158,126,0.2); color: var(--soft-olive); }
-        .status-completed { background-color: rgba(139,158,126,0.3); color: #6b7a5d; }
+        .status-confirmed { background-color: rgba(107,145,181,0.18); color: var(--cornflower-deep); }
+        .status-completed { background-color: rgba(201,169,97,0.25); color: var(--gold-deep); }
         .status-cancelled { background-color: rgba(217,83,79,0.2); color: #d9534f; }
         .status-noshow, .status-no_show { background-color: rgba(201,169,110,0.2); color: var(--gold); }
         .status-blocked { background-color: rgba(92,61,46,0.2); color: var(--deep-brown); }
@@ -86,13 +102,13 @@
         .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn { padding: 8px 12px; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Lato', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; }
         .btn-primary { background-color: var(--terracotta); color: white; }
-        .btn-primary:hover { background-color: #245A75; }
+        .btn-primary:hover { background-color: var(--cornflower-deep); }
         .btn-secondary { background-color: var(--soft-olive); color: white; }
-        .btn-secondary:hover { background-color: #4A7A49; }
+        .btn-secondary:hover { background-color: var(--gold-deep); }
         .btn-danger { background-color: #d9534f; color: white; }
         .btn-danger:hover { background-color: #c9302c; }
         .btn-warning { background-color: var(--gold); color: var(--deep-brown); }
-        .btn-warning:hover { background-color: #b8945f; }
+        .btn-warning:hover { background-color: var(--gold-deep); }
         .btn-small { padding: 6px 10px; font-size: 11px; }
         .btn-outline { background: transparent; border: 2px solid var(--terracotta); color: var(--terracotta); }
         .btn-outline:hover { background: var(--terracotta); color: white; }
@@ -126,7 +142,7 @@
 
         /* CLIENT DETAIL PANEL */
         .client-detail-panel { background: white; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); overflow: hidden; margin-bottom: 20px; }
-        .client-detail-header { background: linear-gradient(135deg, var(--deep-brown), #7A5240); padding: 24px; color: var(--cream); display: flex; justify-content: space-between; align-items: center; }
+        .client-detail-header { background: linear-gradient(135deg, var(--cornflower-deep), var(--cornflower)); padding: 24px; color: var(--cream); display: flex; justify-content: space-between; align-items: center; }
         .client-detail-header h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin: 0; }
         .client-detail-body { padding: 24px; }
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
@@ -134,7 +150,7 @@
         .detail-section h4 { color: var(--terracotta); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid var(--warm-beige); padding-bottom: 4px; }
         .detail-item { font-size: 14px; margin-bottom: 4px; color: var(--text-dark); }
         .detail-item .label { color: var(--text-light); font-size: 12px; text-transform: uppercase; }
-        .notes-display { background: #FFF8F0; border: 1px solid var(--warm-beige); border-radius: 6px; padding: 12px; font-size: 14px; white-space: pre-wrap; min-height: 60px; color: var(--text-dark); }
+        .notes-display { background: var(--cream); border: 1px solid var(--warm-beige); border-radius: 6px; padding: 12px; font-size: 14px; white-space: pre-wrap; min-height: 60px; color: var(--text-dark); }
 
         /* MERGE DROP ZONE */
         .merge-zone { border: 3px dashed var(--gold); border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 20px; background: rgba(201,169,110,0.05); transition: all 0.3s; display: none; }
@@ -181,12 +197,13 @@
         .admin-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .admin-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         .admin-cal-day-label { text-align: center; font-weight: 700; font-size: 12px; color: var(--text-light); padding: 8px 0; text-transform: uppercase; }
-        .admin-cal-day { min-height: 80px; background: var(--cream); border: 1px solid #e8ddd0; border-radius: 4px; padding: 4px 6px; cursor: pointer; transition: all 0.2s; font-size: 12px; position: relative; }
+        .admin-cal-day { min-height: 80px; background: var(--cream); border: 1px solid var(--ivory-deeper); border-radius: 4px; padding: 4px 6px; cursor: pointer; transition: all 0.2s; font-size: 12px; position: relative; }
         .admin-cal-day:hover { border-color: var(--terracotta); background: rgba(196,125,90,0.05); }
         .admin-cal-day.today { border: 2px solid var(--terracotta); }
         .admin-cal-day.selected { background: rgba(196,125,90,0.12); border-color: var(--terracotta); }
-        .admin-cal-day.off { background: #f0ece6; color: #bbb; cursor: default; }
-        .admin-cal-day.off:hover { border-color: #e8ddd0; background: #f0ece6; }
+        .admin-cal-day.off { background: var(--sky-pale); color: var(--text-light); cursor: pointer; opacity: 0.85; }
+        .admin-cal-day.off:hover { border-color: var(--terracotta); opacity: 1; }
+        .admin-cal-day.off.selected { background: rgba(107,145,181,0.18); border-color: var(--terracotta); opacity: 1; }
         .admin-cal-day.empty { background: transparent; border: none; cursor: default; min-height: 0; }
         .admin-cal-day.empty:hover { background: transparent; border: none; }
         .admin-cal-day-num { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
@@ -212,7 +229,7 @@
 
         /* MESSAGES */
         .message { padding: 15px; border-radius: 4px; margin-bottom: 20px; display: none; }
-        .message.success { background-color: rgba(139,158,126,0.2); color: #6b7a5d; border-left: 4px solid var(--soft-olive); display: block; }
+        .message.success { background-color: rgba(107,145,181,0.15); color: var(--cornflower-deep); border-left: 4px solid var(--cornflower); display: block; }
         .message.error { background-color: rgba(217,83,79,0.2); color: #d9534f; border-left: 4px solid #d9534f; display: block; }
 
         /* FOOTER */
@@ -513,9 +530,12 @@
             <button class="close-modal" onclick="closeEditClientModal()">&times;</button>
             <div class="modal-header">Edit Client</div>
             <div id="editClientModalContent"></div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeEditClientModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveEditedClient()">Save Changes</button>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-danger" onclick="removeCurrentClient()" title="Permanently delete this client and their appointment history">&#128465; Remove Client</button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="closeEditClientModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveEditedClient()">Save Changes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -933,44 +953,49 @@
                 // Highlight selected
                 if (adminCalSelectedDate === dateStr) cell.classList.add('selected');
 
-                // Off days
-                if (!isAdminBusinessDay(date)) {
+                // Off days are still visually distinct (greyed) AND clickable —
+                // Mimi uses the upcoming tab as her personal calendar and sometimes
+                // books special clients on her off days.
+                const isOff = !isAdminBusinessDay(date);
+                if (isOff) {
                     cell.classList.add('off');
                     const offLabel = document.createElement('div');
-                    offLabel.style.cssText = 'font-size:10px; color:#bbb;';
+                    offLabel.style.cssText = 'font-size:10px; color: var(--text-light); font-style: italic;';
                     offLabel.textContent = 'Closed';
                     cell.appendChild(offLabel);
-                } else {
-                    // Show appointment dots / count
-                    const dayAppts = apptsByDate[dateStr] || [];
-                    if (dayAppts.length > 0) {
-                        const dotsEl = document.createElement('div');
-                        const confirmed = dayAppts.filter(a => a.status === 'confirmed').length;
-                        const other = dayAppts.length - confirmed;
-                        for (let i = 0; i < Math.min(confirmed, 5); i++) {
-                            const dot = document.createElement('span');
-                            dot.className = 'admin-cal-dot confirmed';
-                            dotsEl.appendChild(dot);
-                        }
-                        for (let i = 0; i < Math.min(other, 3); i++) {
-                            const dot = document.createElement('span');
-                            dot.className = 'admin-cal-dot blocked';
-                            dotsEl.appendChild(dot);
-                        }
-                        cell.appendChild(dotsEl);
-
-                        const countEl = document.createElement('div');
-                        countEl.className = 'admin-cal-appt-count';
-                        countEl.textContent = `${dayAppts.length} appt${dayAppts.length > 1 ? 's' : ''}`;
-                        cell.appendChild(countEl);
-                    }
-
-                    cell.onclick = () => {
-                        adminCalSelectedDate = dateStr;
-                        renderAdminCalendar();
-                        showAdminCalDayDetail(dateStr);
-                    };
                 }
+
+                // Appointment dots + count — runs for ALL days (including off-days),
+                // so Mimi can see exception bookings and personal notes she's added.
+                const dayAppts = apptsByDate[dateStr] || [];
+                if (dayAppts.length > 0) {
+                    const dotsEl = document.createElement('div');
+                    const confirmed = dayAppts.filter(a => a.status === 'confirmed').length;
+                    const other = dayAppts.length - confirmed;
+                    for (let i = 0; i < Math.min(confirmed, 5); i++) {
+                        const dot = document.createElement('span');
+                        dot.className = 'admin-cal-dot confirmed';
+                        dotsEl.appendChild(dot);
+                    }
+                    for (let i = 0; i < Math.min(other, 3); i++) {
+                        const dot = document.createElement('span');
+                        dot.className = 'admin-cal-dot blocked';
+                        dotsEl.appendChild(dot);
+                    }
+                    cell.appendChild(dotsEl);
+
+                    const countEl = document.createElement('div');
+                    countEl.className = 'admin-cal-appt-count';
+                    countEl.textContent = `${dayAppts.length} appt${dayAppts.length > 1 ? 's' : ''}`;
+                    cell.appendChild(countEl);
+                }
+
+                // All days are clickable so Mimi can drill in for appointments / notes.
+                cell.onclick = () => {
+                    adminCalSelectedDate = dateStr;
+                    renderAdminCalendar();
+                    showAdminCalDayDetail(dateStr);
+                };
 
                 grid.appendChild(cell);
             }
@@ -1251,9 +1276,10 @@
             <div class="client-detail-panel">
                 <div class="client-detail-header">
                     <h2>${client.name}</h2>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button class="btn btn-small" style="background:var(--terracotta);color:white;" onclick="openBookAppointmentModal('${client.id}')">Book Appointment</button>
                         <button class="btn btn-small" style="background:var(--gold);color:var(--deep-brown);" onclick="openEditClientModal('${client.id}')">Edit Client</button>
+                        <button class="btn btn-small" style="background:var(--coral);color:white;" onclick="shareClientHistoryEmail('${client.id}')" title="Email this client a copy of their appointment history">&#9993; Share Appointment History</button>
                     </div>
                 </div>
                 <div class="client-detail-body">
@@ -1414,6 +1440,69 @@
                 }
             } catch (error) {
                 showError('Failed to update client: ' + error.message);
+            }
+        }
+
+        // ═══ REMOVE CLIENT (Permanent delete) ═══
+        // Backend blocks removal if the client has any future confirmed
+        // appointments — Mimi must cancel those first.
+        async function removeCurrentClient() {
+            if (!currentEditingClientId) return;
+            const firstName = document.getElementById('editClientFirstName').value.trim();
+            const lastName = document.getElementById('editClientLastName').value.trim();
+            const fullName = `${firstName} ${lastName}`.trim() || 'this client';
+
+            const confirmed = window.confirm(
+                `Are you sure you want to delete ${fullName}?\n\n` +
+                `This will permanently remove the client AND all of their past appointment history. ` +
+                `This action cannot be undone.`
+            );
+            if (!confirmed) return;
+
+            try {
+                const result = await apiCall('removeClient', {
+                    clientId: currentEditingClientId,
+                    confirm: true
+                });
+                showSuccess(`${result.name || fullName} removed (${result.appointmentsDeleted || 0} appointment${result.appointmentsDeleted === 1 ? '' : 's'} deleted)`);
+                closeEditClientModal();
+                if (currentClientDetailId === currentEditingClientId) {
+                    closeClientDetail();
+                }
+                await loadAllData();
+                filterClients();
+            } catch (error) {
+                showError(error.message || 'Failed to remove client');
+            }
+        }
+
+        // ═══ SHARE APPOINTMENT HISTORY ═══
+        // Emails the selected client a copy of their full past + upcoming
+        // appointment history with a friendly canned message from Mimi.
+        async function shareClientHistoryEmail(clientId) {
+            const client = (allClients || []).find(c => c.id === clientId);
+            if (!client) {
+                showError('Client not found');
+                return;
+            }
+            const emailAddr = client.email || (client.emails && client.emails[0] && client.emails[0].email) || '';
+            if (!emailAddr) {
+                showError(`${client.first_name || 'This client'} has no email on file. Add one before sharing history.`);
+                return;
+            }
+
+            const confirmed = window.confirm(
+                `Email ${client.first_name || 'this client'}'s full appointment history to:\n\n` +
+                `  ${emailAddr}\n\n` +
+                `This includes all past and upcoming appointments with services, times, and notes.`
+            );
+            if (!confirmed) return;
+
+            try {
+                const result = await apiCall('shareClientHistory', { clientId });
+                showSuccess(`Sent ${result.appointmentsIncluded} appointment${result.appointmentsIncluded === 1 ? '' : 's'} to ${result.to}`);
+            } catch (error) {
+                showError(error.message || 'Failed to send appointment history');
             }
         }
 
