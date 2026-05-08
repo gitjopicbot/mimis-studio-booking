@@ -6,17 +6,20 @@
  * Actions:
  *   getAppointments, updateAppointment, deleteAppointment, blockTime,
  *   getClients, searchClients, getClientDetail, getClientAppointments,
- *   updateClient, mergeClients, addAdminNote, clearTestData, getDailySchedule,
- *   adminBookAppointment
+ *   updateClient, mergeClients, removeClient, shareClientHistory,
+ *   addAdminNote, clearTestData, getDailySchedule, adminBookAppointment
  */
 
 const { createClient } = require("@supabase/supabase-js");
+const { Resend } = require("resend");
 
 const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "mimi-studio-secret-key";
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
 function validateToken(authHeader) {
   if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
@@ -75,6 +78,9 @@ async function updateAppointment(appointmentId, updates) {
   }
   if (Object.keys(updateData).length === 0) throw new Error("No valid fields to update");
 
+  // Always stamp an updated_at so the appointment log can show when changes (e.g., cancellations) occurred
+  updateData.updated_at = new Date().toISOString();
+
   const { data, error } = await supabase
     .from("appointments")
     .update(updateData)
@@ -83,12 +89,6 @@ async function updateAppointment(appointmentId, updates) {
 
   if (error) throw new Error(`Failed to update appointment: ${error.message}`);
   if (!data || data.length === 0) throw new Error("Appointment not found");
-
-  // Try to stamp updated_at separately (column may not exist yet)
-  try {
-    await supabase.from("appointments").update({ updated_at: new Date().toISOString() }).eq("id", appointmentId);
-  } catch (e) { /* column may not exist - that is fine */ }
-
   return data[0];
 }
 
@@ -536,6 +536,230 @@ async function mergeClients(targetClientId, sourceClientId) {
   return await getClientDetail(targetClientId);
 }
 
+// ─── REMOVE CLIENT ────────────────────────────────────────
+//
+// Permanently deletes a client and all their associated records.
+// Refuses to delete if the client has any future CONFIRMED appointments —
+// admin must cancel those first. Past appointments are cascade-deleted.
+//
+// Cascade order: appointment_services → appointments → client_phones
+// → client_emails → clients.
+
+async function removeClient(clientId) {
+  // 1. Verify client exists, capture name for the response
+  const { data: client, error: cErr } = await supabase
+    .from("clients")
+    .select("id, first_name, last_name")
+    .eq("id", clientId)
+    .single();
+  if (cErr || !client) throw new Error("Client not found");
+
+  // 2. Block if client has any future confirmed appointments (PT calendar)
+  const todayPt = salonDateStrToday();
+  const { data: futureAppts, error: fErr } = await supabase
+    .from("appointments")
+    .select("id, appointment_date, start_time")
+    .eq("client_id", clientId)
+    .eq("status", "confirmed")
+    .gte("appointment_date", todayPt);
+  if (fErr) throw new Error(`Failed to check future appointments: ${fErr.message}`);
+  if (futureAppts && futureAppts.length > 0) {
+    const count = futureAppts.length;
+    throw new Error(
+      `Cannot remove ${client.first_name} ${client.last_name} — they have ${count} upcoming appointment${count === 1 ? "" : "s"}. Please cancel ${count === 1 ? "it" : "them"} first.`
+    );
+  }
+
+  // 3. Cascade delete — gather appointment IDs first (for appointment_services)
+  const { data: appts } = await supabase
+    .from("appointments")
+    .select("id")
+    .eq("client_id", clientId);
+  const apptIds = (appts || []).map(a => a.id);
+
+  if (apptIds.length > 0) {
+    const { error: asErr } = await supabase
+      .from("appointment_services")
+      .delete()
+      .in("appointment_id", apptIds);
+    if (asErr) throw new Error(`Failed to delete appointment services: ${asErr.message}`);
+  }
+
+  // 4. Delete the appointments themselves
+  const { error: aErr } = await supabase
+    .from("appointments")
+    .delete()
+    .eq("client_id", clientId);
+  if (aErr) throw new Error(`Failed to delete appointments: ${aErr.message}`);
+
+  // 5. Delete contact rows
+  await supabase.from("client_phones").delete().eq("client_id", clientId);
+  await supabase.from("client_emails").delete().eq("client_id", clientId);
+
+  // 6. Finally delete the client
+  const { error: dErr } = await supabase
+    .from("clients")
+    .delete()
+    .eq("id", clientId);
+  if (dErr) throw new Error(`Failed to delete client: ${dErr.message}`);
+
+  return {
+    removed: true,
+    clientId,
+    name: `${client.first_name} ${client.last_name}`.trim(),
+    appointmentsDeleted: apptIds.length,
+  };
+}
+
+// Pacific-time today as YYYY-MM-DD string. Used for "future appointment" checks.
+function salonDateStrToday() {
+  const ptNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  return ptNow.toISOString().split("T")[0];
+}
+
+// ─── SHARE APPOINTMENT HISTORY ────────────────────────────
+//
+// Emails the client a complete copy of their appointment history (past +
+// upcoming) with a friendly canned message. Pulls services, dates, times,
+// and notes for each appointment.
+
+async function shareClientHistory(clientId) {
+  if (!resend) throw new Error("Email not configured (RESEND_API_KEY missing)");
+
+  // Fetch client + their primary email
+  const { data: client, error: cErr } = await supabase
+    .from("clients")
+    .select("id, first_name, last_name, email")
+    .eq("id", clientId)
+    .single();
+  if (cErr || !client) throw new Error("Client not found");
+  if (!client.email) throw new Error(`${client.first_name || "Client"} has no email on file`);
+
+  // Fetch all visible appointments (confirmed + completed; skip blocked/cancelled)
+  const { data: rawAppts, error: aErr } = await supabase
+    .from("appointments")
+    .select(`
+      id, appointment_date, start_time, end_time, status, notes,
+      appointment_services (services (name))
+    `)
+    .eq("client_id", clientId)
+    .order("appointment_date", { ascending: false })
+    .order("start_time", { ascending: false });
+  if (aErr) throw new Error(`Failed to fetch appointments: ${aErr.message}`);
+
+  const visible = (rawAppts || []).filter(
+    a => a.status === "confirmed" || a.status === "completed"
+  );
+  if (visible.length === 0) {
+    throw new Error("This client has no appointment history to share.");
+  }
+
+  // Build + send the email
+  const html = clientHistoryEmailHtml({
+    firstName: client.first_name,
+    appointments: visible,
+  });
+
+  const sendRes = await resend.emails.send({
+    from: "Mimi's Studio <bookings@mimisstudio1.com>",
+    to: client.email,
+    subject: "Your Mimi's Studio appointment history",
+    html,
+  });
+
+  console.log(`[shareClientHistory] Sent to ${client.email}, resend id=${sendRes?.data?.id || "n/a"}, ${visible.length} appointments`);
+
+  return {
+    sent: true,
+    to: client.email,
+    appointmentsIncluded: visible.length,
+    resendId: sendRes?.data?.id || null,
+  };
+}
+
+function clientHistoryEmailHtml({ firstName, appointments }) {
+  const todayPt = salonDateStrToday();
+  const upcoming = appointments.filter(a => a.appointment_date >= todayPt);
+  const past = appointments.filter(a => a.appointment_date < todayPt);
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr + "T12:00:00");
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  }
+  function formatTime(mins) {
+    if (mins === null || mins === undefined) return "";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    const ampm = h >= 12 ? "PM" : "AM";
+    return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+  }
+  function apptRow(a) {
+    const services = (a.appointment_services || [])
+      .map(as => as.services && as.services.name)
+      .filter(Boolean);
+    return `
+      <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #ECE3D0; vertical-align: top; width: 38%;">
+          <div style="color: #466B8E; font-weight: bold; font-size: 14px;">${formatDate(a.appointment_date)}</div>
+          <div style="color: #6B91B5; font-size: 13px; margin-top: 2px;">${formatTime(a.start_time)}</div>
+        </td>
+        <td style="padding: 12px; border-bottom: 1px solid #ECE3D0; vertical-align: top; color: #2C3E55; font-size: 13px;">
+          ${services.length > 0 ? services.join("<br>") : "<em style='color:#95A0B0;'>No services on record</em>"}
+          ${a.notes ? `<div style="color: #5C6B82; font-style: italic; margin-top: 6px; font-size: 12px;">Note: ${escapeHtml(a.notes)}</div>` : ""}
+        </td>
+      </tr>`;
+  }
+
+  const upcomingTable = upcoming.length > 0 ? `
+    <h3 style="color: #466B8E; margin: 24px 0 8px; font-family: 'Georgia', serif; font-size: 17px;">Upcoming</h3>
+    <table style="width: 100%; border-collapse: collapse; background: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #ECE3D0;">
+      ${upcoming.map(apptRow).join("")}
+    </table>` : "";
+  const pastTable = past.length > 0 ? `
+    <h3 style="color: #466B8E; margin: 24px 0 8px; font-family: 'Georgia', serif; font-size: 17px;">Past Appointments</h3>
+    <table style="width: 100%; border-collapse: collapse; background: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #ECE3D0;">
+      ${past.map(apptRow).join("")}
+    </table>` : "";
+
+  return `
+  <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FAF6EC;">
+    <div style="background: linear-gradient(135deg, #466B8E 0%, #6B91B5 55%, #8FA8C9 100%); padding: 30px; text-align: center;">
+      <h1 style="color: #FAF6EC; font-size: 28px; margin: 0;">Mimi's Studio</h1>
+      <p style="color: #E8D4A0; font-size: 14px; margin: 5px 0 0; letter-spacing: 2px;">APPOINTMENT HISTORY</p>
+    </div>
+    <div style="padding: 30px;">
+      <p style="color: #2C3E55; font-size: 16px;">Hey ${escapeHtml(firstName || "there")},</p>
+      <p style="color: #5C6B82; font-size: 15px; line-height: 1.6;">
+        Here is the appointment history you requested. Please let me know if you have any questions.
+      </p>
+      ${upcomingTable}
+      ${pastTable}
+      <p style="color: #5C6B82; font-size: 14px; line-height: 1.6; margin-top: 28px;">
+        Thank you for being a valued client!
+      </p>
+      <p style="color: #2C3E55; font-weight: bold; margin-top: 8px;">- Mimi's Studio</p>
+    </div>
+    <div style="background: #466B8E; padding: 20px; text-align: center;">
+      <p style="color: #E8D4A0; font-size: 13px; margin: 0 0 4px;">
+        <a href="tel:+17072924914" style="color: #E8D4A0; text-decoration: none;">(707) 292-4914</a>
+      </p>
+      <p style="color: #BDD9E8; font-size: 12px; margin: 4px 0 0;">
+        330 South A St, Santa Rosa, CA 95401
+      </p>
+    </div>
+  </div>`;
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ─── CLEAR TEST DATA ──────────────────────────────────────
 
 async function clearTestData() {
@@ -608,6 +832,16 @@ exports.handler = async (event) => {
         if (!params.targetClientId || !params.sourceClientId)
           return errorResponse(400, "Missing targetClientId or sourceClientId");
         result = await mergeClients(params.targetClientId, params.sourceClientId);
+        break;
+      case "removeClient":
+        if (!params.clientId) return errorResponse(400, "Missing clientId");
+        if (params.confirm !== true) return errorResponse(400, "removeClient requires confirm: true");
+        result = await removeClient(params.clientId);
+        console.warn(`ADMIN ACTION: removeClient ${params.clientId} — ${result.appointmentsDeleted} appointments deleted`);
+        break;
+      case "shareClientHistory":
+        if (!params.clientId) return errorResponse(400, "Missing clientId");
+        result = await shareClientHistory(params.clientId);
         break;
       case "addAdminNote":
         if (!params.appointmentId || params.adminNotes === undefined)

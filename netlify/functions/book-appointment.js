@@ -339,37 +339,37 @@ function formatDuration(mins) {
 
 function clientEmailHtml({ firstName, dateFormatted, timeFormatted, endTimeFormatted, serviceNames, totalDuration }) {
   return `
-  <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FDF6EC;">
-    <div style="background: linear-gradient(135deg, #5C3D2E, #7A5240); padding: 30px; text-align: center;">
-      <h1 style="color: #FDF6EC; font-size: 28px; margin: 0;">Mimi's Studio</h1>
-      <p style="color: #E0CC9D; font-size: 14px; margin: 5px 0 0; letter-spacing: 2px;">APPOINTMENT CONFIRMED</p>
+  <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FAF6EC;">
+    <div style="background: linear-gradient(135deg, #466B8E 0%, #6B91B5 55%, #8FA8C9 100%); padding: 30px; text-align: center;">
+      <h1 style="color: #FAF6EC; font-size: 28px; margin: 0;">Mimi's Studio</h1>
+      <p style="color: #E8D4A0; font-size: 14px; margin: 5px 0 0; letter-spacing: 2px;">APPOINTMENT CONFIRMED</p>
     </div>
     <div style="padding: 30px;">
-      <p style="color: #3A2820; font-size: 16px;">Hi ${firstName},</p>
-      <p style="color: #6B5347; font-size: 15px; line-height: 1.6;">
+      <p style="color: #2C3E55; font-size: 16px;">Hi ${firstName},</p>
+      <p style="color: #5C6B82; font-size: 15px; line-height: 1.6;">
         Your appointment has been booked! Here are your details:
       </p>
-      <div style="background: #F5E6D3; border-radius: 10px; padding: 20px; margin: 20px 0;">
+      <div style="background: #ECE3D0; border-radius: 10px; padding: 20px; margin: 20px 0; border-left: 4px solid #C9A961;">
         <table style="width: 100%; border-collapse: collapse;">
-          <tr><td style="padding: 8px 0; color: #9C8578; font-size: 14px;">Date</td><td style="padding: 8px 0; color: #3A2820; font-weight: bold; text-align: right; font-size: 14px;">${dateFormatted}</td></tr>
-          <tr><td style="padding: 8px 0; color: #9C8578; font-size: 14px;">Time</td><td style="padding: 8px 0; color: #3A2820; font-weight: bold; text-align: right; font-size: 14px;">${timeFormatted} - ${endTimeFormatted}</td></tr>
-          <tr><td style="padding: 8px 0; color: #9C8578; font-size: 14px;">Duration</td><td style="padding: 8px 0; color: #3A2820; font-weight: bold; text-align: right; font-size: 14px;">${formatDuration(totalDuration)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #9C8578; font-size: 14px; vertical-align: top;">Services</td><td style="padding: 8px 0; color: #3A2820; font-weight: bold; text-align: right; font-size: 14px;">${serviceNames.join('<br>')}</td></tr>
+          <tr><td style="padding: 8px 0; color: #95A0B0; font-size: 14px;">Date</td><td style="padding: 8px 0; color: #2C3E55; font-weight: bold; text-align: right; font-size: 14px;">${dateFormatted}</td></tr>
+          <tr><td style="padding: 8px 0; color: #95A0B0; font-size: 14px;">Time</td><td style="padding: 8px 0; color: #2C3E55; font-weight: bold; text-align: right; font-size: 14px;">${timeFormatted} - ${endTimeFormatted}</td></tr>
+          <tr><td style="padding: 8px 0; color: #95A0B0; font-size: 14px;">Duration</td><td style="padding: 8px 0; color: #2C3E55; font-weight: bold; text-align: right; font-size: 14px;">${formatDuration(totalDuration)}</td></tr>
+          <tr><td style="padding: 8px 0; color: #95A0B0; font-size: 14px; vertical-align: top;">Services</td><td style="padding: 8px 0; color: #2C3E55; font-weight: bold; text-align: right; font-size: 14px;">${serviceNames.join('<br>')}</td></tr>
         </table>
       </div>
-      <p style="color: #6B5347; font-size: 14px; line-height: 1.6;">
+      <p style="color: #5C6B82; font-size: 14px; line-height: 1.6;">
         Need to change or cancel? Please call or text Mimi at least 24 hours before your appointment.
       </p>
-      <p style="color: #C47D5A; font-size: 14px;">See you soon!</p>
-      <p style="color: #3A2820; font-weight: bold;">- Mimi's Studio</p>
+      <p style="color: #6B91B5; font-size: 14px;">See you soon!</p>
+      <p style="color: #2C3E55; font-weight: bold;">- Mimi's Studio</p>
     </div>
-    <div style="background: #5C3D2E; padding: 20px; text-align: center;">
-      <p style="color: #E0CC9D; font-size: 14px; margin: 0 0 6px; font-weight: bold;">Mimi's Studio</p>
-      <p style="color: #E0CC9D; font-size: 13px; margin: 0 0 4px;">
-        <a href="tel:+17072924914" style="color: #E0CC9D; text-decoration: none;">(707) 292-4914</a> &nbsp;|&nbsp;
-        <a href="mailto:mimisstudio@gmail.com" style="color: #E0CC9D; text-decoration: none;">mimisstudio@gmail.com</a>
+    <div style="background: #466B8E; padding: 20px; text-align: center;">
+      <p style="color: #E8D4A0; font-size: 14px; margin: 0 0 6px; font-weight: bold;">Mimi's Studio</p>
+      <p style="color: #E8D4A0; font-size: 13px; margin: 0 0 4px;">
+        <a href="tel:+17072924914" style="color: #E8D4A0; text-decoration: none;">(707) 292-4914</a> &nbsp;|&nbsp;
+        <a href="mailto:mimisstudio@gmail.com" style="color: #E8D4A0; text-decoration: none;">mimisstudio@gmail.com</a>
       </p>
-      <p style="color: #c4a882; font-size: 12px; margin: 4px 0 0;">
+      <p style="color: #BDD9E8; font-size: 12px; margin: 4px 0 0;">
         330 South A St, Santa Rosa, CA 95401
       </p>
     </div>
@@ -381,29 +381,29 @@ function clientEmailHtml({ firstName, dateFormatted, timeFormatted, endTimeForma
 function mimiEmailHtml({ firstName, lastName, email, phone, dateFormatted, timeFormatted, endTimeFormatted, serviceNames, totalDuration, notes }) {
   const notesSection = notes ? `
     <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #E8DDD5; color: #9C8578; vertical-align: top; font-weight: bold;">Client Notes</td>
-      <td style="padding: 12px; border-bottom: 1px solid #E8DDD5; color: #3A2820; background: #FFF8F0; border-left: 3px solid #C47D5A; font-style: italic;">${notes}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ECE3D0; color: #95A0B0; vertical-align: top; font-weight: bold;">Client Notes</td>
+      <td style="padding: 12px; border-bottom: 1px solid #ECE3D0; color: #2C3E55; background: #FAF6EC; border-left: 3px solid #C9A961; font-style: italic;">${notes}</td>
     </tr>` : '';
 
   return `
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-    <div style="background: #C47D5A; padding: 20px; text-align: center;">
+    <div style="background: #6B91B5; padding: 20px; text-align: center;">
       <h1 style="color: white; font-size: 22px; margin: 0;">New Booking Alert</h1>
     </div>
-    <div style="padding: 25px; background: #FDF6EC;">
-      <h2 style="color: #5C3D2E; margin-top: 0;">${firstName} ${lastName}</h2>
+    <div style="padding: 25px; background: #FAF6EC;">
+      <h2 style="color: #466B8E; margin-top: 0;">${firstName} ${lastName}</h2>
       <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578; width: 120px;">Email</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820;"><a href="mailto:${email}">${email}</a></td></tr>
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578;">Phone</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820;"><a href="tel:${phone}">${phone}</a></td></tr>
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578;">Date</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820; font-weight: bold;">${dateFormatted}</td></tr>
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578;">Time</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820; font-weight: bold;">${timeFormatted} - ${endTimeFormatted}</td></tr>
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578;">Duration</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820;">${formatDuration(totalDuration)}</td></tr>
-        <tr><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #9C8578; vertical-align: top;">Services</td><td style="padding: 10px; border-bottom: 1px solid #E8DDD5; color: #3A2820;">${serviceNames.join(', ')}</td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0; width: 120px;">Email</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55;"><a href="mailto:${email}" style="color: #466B8E;">${email}</a></td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0;">Phone</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55;"><a href="tel:${phone}" style="color: #466B8E;">${phone}</a></td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0;">Date</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55; font-weight: bold;">${dateFormatted}</td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0;">Time</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55; font-weight: bold;">${timeFormatted} - ${endTimeFormatted}</td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0;">Duration</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55;">${formatDuration(totalDuration)}</td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #95A0B0; vertical-align: top;">Services</td><td style="padding: 10px; border-bottom: 1px solid #ECE3D0; color: #2C3E55;">${serviceNames.join(', ')}</td></tr>
         ${notesSection}
       </table>
     </div>
-    <div style="background: #5C3D2E; padding: 12px; text-align: center;">
-      <p style="color: #E0CC9D; font-size: 12px; margin: 0;">(707) 292-4914 | mimisstudio@gmail.com | 330 South A St, Santa Rosa, CA 95401</p>
+    <div style="background: #466B8E; padding: 12px; text-align: center;">
+      <p style="color: #E8D4A0; font-size: 12px; margin: 0;">(707) 292-4914 | mimisstudio@gmail.com | 330 South A St, Santa Rosa, CA 95401</p>
     </div>
   </div>`;
 }

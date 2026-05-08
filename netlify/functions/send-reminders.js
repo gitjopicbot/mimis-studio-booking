@@ -189,37 +189,37 @@ function reminderEmailHtml({ firstName, date, time, services, isToday }) {
   });
 
   const banner = isToday
-    ? `<div style="background: #C47D5A; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px;">Your appointment is today!</div>`
+    ? `<div style="background: #C97D5C; color: white; text-align: center; padding: 12px; font-weight: bold; font-size: 15px;">Your appointment is today!</div>`
     : '';
 
   return `
-  <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FDF6EC;">
-    <div style="background: linear-gradient(135deg, #5C3D2E, #7A5240); padding: 30px; text-align: center;">
-      <h1 style="color: #FDF6EC; font-size: 28px; margin: 0;">Mimi's Studio</h1>
-      <p style="color: #E0CC9D; font-size: 14px; margin: 5px 0 0; letter-spacing: 2px;">APPOINTMENT REMINDER</p>
+  <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; background: #FAF6EC;">
+    <div style="background: linear-gradient(135deg, #466B8E 0%, #6B91B5 55%, #8FA8C9 100%); padding: 30px; text-align: center;">
+      <h1 style="color: #FAF6EC; font-size: 28px; margin: 0;">Mimi's Studio</h1>
+      <p style="color: #E8D4A0; font-size: 14px; margin: 5px 0 0; letter-spacing: 2px;">APPOINTMENT REMINDER</p>
     </div>
     ${banner}
     <div style="padding: 30px;">
-      <p style="color: #3A2820; font-size: 16px;">Hi ${firstName || 'there'},</p>
-      <p style="color: #6B5347; font-size: 15px; line-height: 1.6;">
+      <p style="color: #2C3E55; font-size: 16px;">Hi ${firstName || 'there'},</p>
+      <p style="color: #5C6B82; font-size: 15px; line-height: 1.6;">
         Just a friendly reminder about your upcoming appointment:
       </p>
-      <div style="background: #F5E6D3; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center;">
-        <p style="font-size: 18px; color: #5C3D2E; font-weight: bold; margin: 0 0 5px;">${dateFormatted}</p>
-        <p style="font-size: 24px; color: #C47D5A; font-weight: bold; margin: 0;">${time}</p>
-        ${services.length ? `<p style="font-size: 14px; color: #6B5347; margin: 10px 0 0;">${services.join(' + ')}</p>` : ''}
+      <div style="background: #ECE3D0; border-radius: 10px; padding: 20px; margin: 20px 0; text-align: center; border-left: 4px solid #C9A961;">
+        <p style="font-size: 18px; color: #466B8E; font-weight: bold; margin: 0 0 5px;">${dateFormatted}</p>
+        <p style="font-size: 24px; color: #6B91B5; font-weight: bold; margin: 0;">${time}</p>
+        ${services.length ? `<p style="font-size: 14px; color: #5C6B82; margin: 10px 0 0;">${services.join(' + ')}</p>` : ''}
       </div>
-      <p style="color: #6B5347; font-size: 14px; line-height: 1.6;">
+      <p style="color: #5C6B82; font-size: 14px; line-height: 1.6;">
         Need to reschedule? Please call or text Mimi as soon as possible.
       </p>
-      <p style="color: #C47D5A; font-size: 14px;">See you soon!</p>
-      <p style="color: #3A2820; font-weight: bold;">- Mimi's Studio</p>
+      <p style="color: #6B91B5; font-size: 14px;">See you soon!</p>
+      <p style="color: #2C3E55; font-weight: bold;">- Mimi's Studio</p>
     </div>
-    <div style="background: #5C3D2E; padding: 20px; text-align: center;">
-      <p style="color: #E0CC9D; font-size: 13px; margin: 0 0 4px;">
-        <a href="tel:+17072924914" style="color: #E0CC9D; text-decoration: none;">(707) 292-4914</a>
+    <div style="background: #466B8E; padding: 20px; text-align: center;">
+      <p style="color: #E8D4A0; font-size: 13px; margin: 0 0 4px;">
+        <a href="tel:+17072924914" style="color: #E8D4A0; text-decoration: none;">(707) 292-4914</a>
       </p>
-      <p style="color: #c4a882; font-size: 12px; margin: 4px 0 0;">
+      <p style="color: #BDD9E8; font-size: 12px; margin: 4px 0 0;">
         330 South A St, Santa Rosa, CA 95401
       </p>
     </div>
