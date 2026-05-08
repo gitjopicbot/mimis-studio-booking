@@ -32,6 +32,7 @@
             --soft-olive: #C9A961;
             --warm-beige: #ECE3D0;
             --text-dark: #2C3E55;
+            --text-medium: #5C6B82;
             --text-light: #95A0B0;
             --queen-red: #C97D5C;
             --queen-red-dark: #A56247;
@@ -779,7 +780,10 @@
                 adminNotes: a.admin_notes || '',
                 services: (a.appointment_services || []).map(as => as.services ? as.services.name : '').filter(Boolean).join(', ') || 'N/A',
                 createdAt: a.created_at,
-                updatedAt: a.updated_at
+                updatedAt: a.updated_at,
+                createdBy: a.created_by || 'unknown',
+                bookingEmail: a.booking_email || (a.clients ? a.clients.email : null) || '',
+                cancelledAt: a.cancelled_at || null
             }));
         }
 
@@ -1127,6 +1131,12 @@
         }
 
         // RENDER: APPOINTMENT LOG
+        // Each appointment can produce up to two events:
+        //   * Created — fires whenever the appointment was first booked
+        //     (timestamp = created_at, "Source" = client / admin / unknown)
+        //   * Cancelled — fires only if the appointment is currently cancelled
+        //     (timestamp = cancelled_at if set, else falls back to updated_at)
+        // Events are sorted newest-first by event timestamp.
         function renderLog() {
             const container = document.getElementById('logContent');
             if (!container) return;
@@ -1136,29 +1146,64 @@
             allAppointments.forEach(a => {
                 if (a.status === 'blocked') return;
                 if (a.createdAt) events.push({ type: 'created', timestamp: a.createdAt, appt: a });
-                if (a.status === 'cancelled') events.push({ type: 'cancelled', timestamp: a.updatedAt || a.createdAt, appt: a });
+                if (a.status === 'cancelled') {
+                    events.push({ type: 'cancelled', timestamp: a.cancelledAt || a.updatedAt || a.createdAt, appt: a });
+                }
             });
             let filtered = events.filter(e => {
                 if (filter !== 'all' && e.type !== filter) return false;
-                if (search && !(e.appt.clientName || '').toLowerCase().includes(search)) return false;
+                if (search) {
+                    const hay = `${e.appt.clientName || ''} ${e.appt.bookingEmail || ''} ${e.appt.clientEmail || ''}`.toLowerCase();
+                    if (!hay.includes(search)) return false;
+                }
                 return true;
             });
+            // Newest-first chronological order based on event timestamp
             filtered.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No log events found.</p></div>';
                 return;
             }
-            let html = '<table class="appointments-table"><thead><tr><th>Timestamp</th><th>Event</th><th>Client</th><th>Appointment</th><th>Services</th></tr></thead><tbody>';
+
+            let html = '<table class="appointments-table"><thead><tr>'
+                + '<th>When</th>'
+                + '<th>Event</th>'
+                + '<th>Source</th>'
+                + '<th>Client</th>'
+                + '<th>Email</th>'
+                + '<th>Appointment</th>'
+                + '<th>Services</th>'
+                + '</tr></thead><tbody>';
             html += filtered.map(e => {
                 const ts = e.timestamp ? new Date(e.timestamp) : null;
-                const tsStr = ts ? `${ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}<br><small>${ts.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</small>` : 'Unknown';
-                const color = e.type === 'created' ? 'rgba(139,158,126,0.2)' : 'rgba(217,83,79,0.15)';
-                const textColor = e.type === 'created' ? 'var(--soft-olive)' : '#d9534f';
-                const eventLabel = e.type === 'created' ? 'Created' : 'Cancelled';
+                const tsStr = ts
+                    ? `${ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}<br><small>${ts.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</small>`
+                    : 'Unknown';
+
+                // Event badge — green-blue for created, coral for cancelled
+                const isCreated = e.type === 'created';
+                const evtBg = isCreated ? 'rgba(107,145,181,0.18)' : 'rgba(201,125,92,0.18)';
+                const evtFg = isCreated ? 'var(--cornflower-deep)' : 'var(--coral-deep)';
+                const evtLabel = isCreated ? 'Created' : 'Cancelled';
+
+                // Source badge — admin vs client vs unknown
+                const src = e.appt.createdBy || 'unknown';
+                const srcBg = src === 'admin' ? 'rgba(201,169,97,0.22)'
+                            : src === 'client' ? 'rgba(107,145,181,0.18)'
+                            : 'rgba(149,160,176,0.2)';
+                const srcFg = src === 'admin' ? 'var(--gold-deep)'
+                            : src === 'client' ? 'var(--cornflower-deep)'
+                            : 'var(--text-light)';
+                const srcLabel = src.charAt(0).toUpperCase() + src.slice(1);
+
+                const email = e.appt.bookingEmail || e.appt.clientEmail || '';
+
                 return `<tr>
                     <td>${tsStr}</td>
-                    <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${color};color:${textColor};font-weight:600;">${eventLabel}</span></td>
+                    <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${evtBg};color:${evtFg};font-weight:600;">${evtLabel}</span></td>
+                    <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${srcBg};color:${srcFg};font-weight:600;">${srcLabel}</span></td>
                     <td><a href="#" onclick="openClientFromAppt('${e.appt.clientId}');return false;" style="color:var(--terracotta);font-weight:600;">${e.appt.clientName || 'Unknown'}</a></td>
+                    <td><small>${email ? `<a href="mailto:${email}" style="color:var(--text-medium);text-decoration:none;">${email}</a>` : '<em style="color:var(--text-light);">none on file</em>'}</small></td>
                     <td>${fmtDate(e.appt.date)}<br><small>${fmtTime(e.appt.startTime)} - ${fmtTime(e.appt.endTime)}</small></td>
                     <td><small>${e.appt.services || ''}</small></td>
                 </tr>`;
