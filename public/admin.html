@@ -1168,7 +1168,6 @@
             let html = '<table class="appointments-table"><thead><tr>'
                 + '<th>When</th>'
                 + '<th>Event</th>'
-                + '<th>Source</th>'
                 + '<th>Client</th>'
                 + '<th>Email</th>'
                 + '<th>Appointment</th>'
@@ -1180,28 +1179,17 @@
                     ? `${ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}<br><small>${ts.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</small>`
                     : 'Unknown';
 
-                // Event badge — green-blue for created, coral for cancelled
+                // Event badge — cornflower for created, coral for cancelled
                 const isCreated = e.type === 'created';
                 const evtBg = isCreated ? 'rgba(107,145,181,0.18)' : 'rgba(201,125,92,0.18)';
                 const evtFg = isCreated ? 'var(--cornflower-deep)' : 'var(--coral-deep)';
                 const evtLabel = isCreated ? 'Created' : 'Cancelled';
-
-                // Source badge — admin vs client vs unknown
-                const src = e.appt.createdBy || 'unknown';
-                const srcBg = src === 'admin' ? 'rgba(201,169,97,0.22)'
-                            : src === 'client' ? 'rgba(107,145,181,0.18)'
-                            : 'rgba(149,160,176,0.2)';
-                const srcFg = src === 'admin' ? 'var(--gold-deep)'
-                            : src === 'client' ? 'var(--cornflower-deep)'
-                            : 'var(--text-light)';
-                const srcLabel = src.charAt(0).toUpperCase() + src.slice(1);
 
                 const email = e.appt.bookingEmail || e.appt.clientEmail || '';
 
                 return `<tr>
                     <td>${tsStr}</td>
                     <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${evtBg};color:${evtFg};font-weight:600;">${evtLabel}</span></td>
-                    <td><span style="font-size:12px;padding:3px 10px;border-radius:4px;background:${srcBg};color:${srcFg};font-weight:600;">${srcLabel}</span></td>
                     <td><a href="#" onclick="openClientFromAppt('${e.appt.clientId}');return false;" style="color:var(--terracotta);font-weight:600;">${e.appt.clientName || 'Unknown'}</a></td>
                     <td><small>${email ? `<a href="mailto:${email}" style="color:var(--text-medium);text-decoration:none;">${email}</a>` : '<em style="color:var(--text-light);">none on file</em>'}</small></td>
                     <td>${fmtDate(e.appt.date)}<br><small>${fmtTime(e.appt.startTime)} - ${fmtTime(e.appt.endTime)}</small></td>
