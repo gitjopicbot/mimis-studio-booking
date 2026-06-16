@@ -9,6 +9,7 @@ const SLOT_INCREMENT = 30; // 30 minutes per slot
 const REFERENCE_DATE = new Date('2026-04-04'); // First working Saturday
 
 // Business hours by day of week (in minutes since midnight)
+// IMPORTANT: keep in sync with book-appointment.js HOURS/getSaturdayHours.
 const HOURS = {
   0: null, // Sunday: CLOSED
   1: null, // Monday: CLOSED
@@ -84,8 +85,13 @@ exports.handler = async (event) => {
     let availableSlots;
 
     if (appointments.length === 0) {
-      // No appointments: all slots within business hours are available
-      availableSlots = allSlots.map(slot => ({ ...slot, available: true }));
+      // No appointments: a slot is available only if the full duration
+      // finishes by closing time (e.g. a 90-min service can't start at 5:30
+      // when the studio closes at 6:00).
+      availableSlots = allSlots.map(slot => ({
+        ...slot,
+        available: (slot.start + durationMin) <= closeMin,
+      }));
     } else {
       // Apply contiguous blocking logic
       availableSlots = applyContiguousLogic(
@@ -194,25 +200,18 @@ function mergeWindows(windows) {
 
 /**
  * Determine if a Saturday is a working Saturday.
- * Reference: April 4, 2026 is a working Saturday.
- * April 11, 2026 is OFF (one week later).
- * They alternate.
- * Logic: count weeks since April 4. Even weeks = working, odd weeks = off.
+ * Reference: April 4, 2026 is a working Saturday; April 11, 2026 is OFF.
+ * They alternate. Even weeks since reference = working, odd = off.
  */
 function getSaturdayHours(dateObj) {
   const weeksSinceReference = Math.floor(
     (dateObj - REFERENCE_DATE) / (7 * 24 * 60 * 60 * 1000)
   );
-
   const isWorkingSaturday = weeksSinceReference % 2 === 0;
-
   if (isWorkingSaturday) {
-    // 1:30 PM - 5:00 PM (810 - 1020 minutes)
-    return [810, 1020];
-  } else {
-    // Off Saturday
-    return null;
+    return [810, 1020]; // 1:30 PM - 5:00 PM
   }
+  return null; // Off Saturday
 }
 
 function formatTime(mins) {
