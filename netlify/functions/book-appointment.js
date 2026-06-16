@@ -48,6 +48,18 @@ exports.handler = async (event) => {
       };
     }
 
+    // 0b. Enforce business hours — reject bookings outside Mimi's open windows.
+    // The front-end only SHOWS valid slots; this guarantees the server never
+    // stores an appointment outside hours (stale page, timezone drift, direct API call, etc.).
+    const hoursCheck = validateBookingWithinHours(date, startTime, endTime);
+    if (!hoursCheck.ok) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders(),
+        body: JSON.stringify({ error: hoursCheck.reason }),
+      };
+    }
+
     // 1. Check for double-booking
     const { data: conflicts } = await supabase
       .from('appointments')
@@ -318,6 +330,51 @@ async function addEmailIfNew(clientId, email) {
     email: email,
     label: 'other'
   });
+}
+
+// ─── BUSINESS HOURS VALIDATION ────────────────────────────
+// IMPORTANT: These hours MUST stay in sync with get-available-slots.js.
+// If you change Mimi's hours, update BOTH files. Times are minutes since midnight.
+const REFERENCE_DATE = new Date('2026-04-04'); // First working Saturday
+const HOURS = {
+  0: null,          // Sunday: CLOSED
+  1: null,          // Monday: CLOSED
+  2: [870, 1080],   // Tuesday: 2:30 PM - 6:00 PM
+  3: [660, 1080],   // Wednesday: 11:00 AM - 6:00 PM
+  4: [660, 1080],   // Thursday: 11:00 AM - 6:00 PM
+  5: [660, 1080],   // Friday: 11:00 AM - 6:00 PM
+  6: null,          // Saturday: alternating (see getSaturdayHours)
+};
+
+// April 4, 2026 is a working Saturday; they alternate every other week.
+function getSaturdayHours(dateObj) {
+  const weeksSinceReference = Math.floor(
+    (dateObj - REFERENCE_DATE) / (7 * 24 * 60 * 60 * 1000)
+  );
+  const isWorkingSaturday = weeksSinceReference % 2 === 0;
+  return isWorkingSaturday ? [810, 1020] : null; // 1:30 PM - 5:00 PM when working
+}
+
+// Returns { ok: true } or { ok: false, reason } — rejects bookings outside open hours.
+function validateBookingWithinHours(dateStr, startTime, endTime) {
+  const dateObj = new Date(dateStr + 'T12:00:00');
+  const dayOfWeek = dateObj.getDay();
+  const hours = dayOfWeek === 6 ? getSaturdayHours(dateObj) : HOURS[dayOfWeek];
+
+  if (!hours) {
+    return { ok: false, reason: 'The studio is closed on this day.' };
+  }
+  const [openMin, closeMin] = hours;
+  if (startTime < openMin || startTime >= closeMin) {
+    return { ok: false, reason: 'The selected start time is outside business hours.' };
+  }
+  if (endTime > closeMin) {
+    return { ok: false, reason: 'The selected time runs past closing time.' };
+  }
+  if (endTime <= startTime) {
+    return { ok: false, reason: 'Invalid appointment time range.' };
+  }
+  return { ok: true };
 }
 
 // ─── HELPERS ──────────────────────────────────────────────
