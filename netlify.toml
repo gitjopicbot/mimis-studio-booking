@@ -16,9 +16,23 @@
 [functions."send-reminders"]
   schedule = "*/15 * * * *"
 
+# Pretty URL for the cancellation link that goes out in confirmation emails:
+#   https://mimisstudio1.com/cancel?token=<uuid>
+[[redirects]]
+  from = "/cancel"
+  to = "/.netlify/functions/cancel-appointment"
+  status = 200
+  force = true
+
+# NOTE: this used to be Access-Control-Allow-Origin = "*", which let any site
+# on the internet call the admin API from a victim's browser. The site's own
+# pages are same-origin, so they don't need CORS at all.
 [[headers]]
   for = "/*"
   [headers.values]
-    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Origin = "https://mimisstudio1.com"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type, Authorization"
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
