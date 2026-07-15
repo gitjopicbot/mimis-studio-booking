@@ -535,8 +535,9 @@ let calYear, calMonth;
 let isBooking = false;
 // Reminders are now mandatory: every appointment gets a 24-hour email reminder.
 
-const OPEN_HOUR = 11;
-const CLOSE_HOUR = 19;
+// Mimi's real hours live server-side (get-available-slots.js / book-appointment.js).
+// Do NOT reintroduce OPEN_HOUR/CLOSE_HOUR constants here — a second copy of the
+// hours on the client is exactly what caused slots to be offered past closing.
 const SLOT_INCREMENT = 30;
 
 // ═══════════════════════════════════════
@@ -783,16 +784,20 @@ async function renderTimeSlots() {
 
   loading.style.display = 'none';
 
-  // Fallback: generate locally
+  // If the availability API is unreachable we must NOT guess at the hours.
+  // The old fallback generated slots from 11:00 to 19:00, which ignored the
+  // 6:00 close, Tuesday's 2:30 start and the alternating Saturday — so it
+  // offered times the server would then refuse to book.
   if (!slots) {
-    slots = [];
-    for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
-      for (let m = 0; m < 60; m += SLOT_INCREMENT) {
-        const start = h * 60 + m;
-        const fits = (start + needed) <= (CLOSE_HOUR * 60);
-        slots.push({ start, available: fits, label: formatTime(start) });
-      }
-    }
+    grid.innerHTML = '';
+    document.getElementById('neededDuration').textContent = formatDuration(needed);
+    grid.insertAdjacentHTML('beforeend', `
+      <div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--text-medium);">
+        <p style="margin-bottom:0.5rem;">Sorry — we couldn't load available times just now.</p>
+        <p style="font-size:0.9rem;">Please refresh the page, or call Mimi at
+          <a href="tel:+17072924914" style="color:var(--terracotta);font-weight:600;">(707) 292-4914</a>.</p>
+      </div>`);
+    return;
   }
 
   // 16-hour advance booking cutoff

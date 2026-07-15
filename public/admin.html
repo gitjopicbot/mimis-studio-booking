@@ -409,7 +409,10 @@
                     </div>
                     <div class="filter-group" style="justify-content: flex-end;">
                         <label>&nbsp;</label>
-                        <button class="btn btn-outline" onclick="toggleMergeMode()">Merge Duplicates</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-primary" onclick="openAddClientModal()">+ Add Client</button>
+                            <button class="btn btn-outline" onclick="toggleMergeMode()">Merge Duplicates</button>
+                        </div>
                     </div>
                 </div>
 
@@ -492,6 +495,54 @@
                     </div>
                 </div>
                 <div id="logContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD CLIENT -->
+    <!-- Mimi's rule: first + last name required, plus AT LEAST ONE of email or
+         phone. Both is fine, only one is necessary. The same rule is enforced
+         in admin-api.js and by a CHECK constraint in the database. -->
+    <div class="modal" id="addClientModal">
+        <div class="modal-content" style="max-width:520px;">
+            <button class="close-modal" onclick="closeAddClientModal()">&times;</button>
+            <div class="modal-header">Add New Client</div>
+
+            <div class="modal-form-group">
+                <label for="newClientFirstName">First Name <span style="color:var(--terracotta);">*</span></label>
+                <input type="text" id="newClientFirstName" placeholder="Jane" style="width:100%;padding:8px;border:1px solid var(--lavender);border-radius:4px;font-family:'Lato',sans-serif;font-size:13px;">
+            </div>
+
+            <div class="modal-form-group">
+                <label for="newClientLastName">Last Name <span style="color:var(--terracotta);">*</span></label>
+                <input type="text" id="newClientLastName" placeholder="Doe" style="width:100%;padding:8px;border:1px solid var(--lavender);border-radius:4px;font-family:'Lato',sans-serif;font-size:13px;">
+            </div>
+
+            <div style="background:var(--warm-beige);border-radius:6px;padding:12px 14px;margin:18px 0 14px;border-left:3px solid var(--soft-olive);">
+                <div style="font-size:13px;color:var(--deep-brown);font-weight:600;margin-bottom:4px;">Contact &mdash; at least one is required</div>
+                <div style="font-size:12px;color:var(--text-light);">You can enter an email, a phone number, or both. Only one is necessary.</div>
+            </div>
+
+            <div class="modal-form-group">
+                <label for="newClientEmail">Email Address</label>
+                <input type="email" id="newClientEmail" placeholder="jane@example.com" style="width:100%;padding:8px;border:1px solid var(--lavender);border-radius:4px;font-family:'Lato',sans-serif;font-size:13px;">
+            </div>
+
+            <div class="modal-form-group">
+                <label for="newClientPhone">Phone Number</label>
+                <input type="tel" id="newClientPhone" placeholder="(555) 123-4567" style="width:100%;padding:8px;border:1px solid var(--lavender);border-radius:4px;font-family:'Lato',sans-serif;font-size:13px;">
+            </div>
+
+            <div class="modal-form-group">
+                <label for="newClientNotes">Notes (optional)</label>
+                <textarea id="newClientNotes" rows="2" placeholder="Color formula, allergies, preferences..."></textarea>
+            </div>
+
+            <div id="addClientError" style="display:none;background:#FFF0F0;border:1px solid #E05555;border-radius:6px;padding:10px 12px;color:#B33;font-size:13px;margin-top:10px;"></div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddClientModal()">Cancel</button>
+                <button class="btn btn-primary" id="addClientSaveBtn" onclick="handleCreateClient()">Create Client</button>
             </div>
         </div>
     </div>
@@ -588,42 +639,13 @@
 
     
 
-            <!-- MIXER CALCULATOR -->
-            <div class="tab-content" id="mixer">
-                <div style="max-width: 550px; margin: 0 auto; padding: 20px;">
-                    <h2 style="text-align: center; font-family: 'Playfair Display', serif; color: var(--deep-brown); margin-bottom: 15px;">Mixer Calculator</h2>
-                    <p style="text-align: center; color: var(--text-light); margin-bottom: 25px; line-height: 1.6;">Enter the strength of two solutions <strong>A</strong> and <strong>B</strong>, your <strong>Desired Strength</strong>, and the <strong>Total Quantity</strong> (mL) you need.</p>
-                    <div style="background: var(--warm-beige); border-radius: 12px; padding: 25px; border: 1px solid var(--lavender);">
-                        <div style="display: grid; grid-template-columns: 160px 1fr 80px; gap: 15px; align-items: center;">
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Solution A:</label>
-                            <input type="number" id="mixSolA" step="any" placeholder="e.g. 3" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Solution B:</label>
-                            <input type="number" id="mixSolB" step="any" placeholder="e.g. 50" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Desired Strength:</label>
-                            <input type="number" id="mixDesired" step="any" placeholder="e.g. 20" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">strength</span>
-                            <label style="font-weight: 700; text-align: right; color: var(--deep-brown);">Total Quantity:</label>
-                            <input type="number" id="mixQty" step="any" placeholder="e.g. 30" style="padding: 10px 12px; border: 1px solid var(--lavender); border-radius: 8px; font-size: 15px; font-family: 'Lato', sans-serif; width: 100%;">
-                            <span style="color: var(--text-light); font-size: 13px;">mL</span>
-                        </div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button onclick="calculateMix()" style="background: linear-gradient(135deg, var(--terracotta), var(--soft-olive)); color: white; border: none; padding: 12px 40px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Lato', sans-serif; letter-spacing: 0.5px;">Calculate</button>
-                            <button onclick="clearMixer()" style="background: transparent; color: var(--text-light); border: 1px solid var(--lavender); padding: 12px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; font-family: 'Lato', sans-serif; margin-left: 10px;">Clear</button>
-                        </div>
-                    </div>
-                    <div id="mixResult" style="display: none; margin-top: 20px; background: linear-gradient(135deg, var(--gold), #E8C94A); border-radius: 12px; padding: 20px; text-align: center;">
-                        <p id="mixResultText" style="font-size: 16px; line-height: 1.8; color: var(--deep-brown); font-weight: 600;"></p>
-                    </div>
-                    <div id="mixError" style="display: none; margin-top: 20px; background: rgba(215,38,56,0.1); border: 1px solid var(--queen-red); border-radius: 12px; padding: 15px; text-align: center;">
-                        <p id="mixErrorText" style="color: var(--queen-red); font-weight: 600;"></p>
-                    </div>
-                    <div style="margin-top: 25px; padding: 15px; background: rgba(201,177,208,0.15); border-radius: 8px;">
-                        <p style="font-size: 13px; color: var(--text-light); text-align: center; margin: 0;"><strong>Example:</strong> Solution A = 3, Solution B = 50, Desired = 20, Qty = 30 mL<br>Result: Mix 19 mL of A with 11 mL of B for a 20.23 strength solution.</p>
-                    </div>
-                </div>
-            </div>
+        <!-- NOTE: a duplicate copy of the Mixer Calculator used to sit here,
+             outside the dashboard and below the footer. It carried the same
+             element ids (mixer, mixSolA, mixSolB, mixDesired, mixQty, ...) as
+             the real one in the tab above, which is invalid HTML. It was dead
+             code — getElementById always resolved to the first copy — so it has
+             been removed. The working Mixer Calculator is the tab-content block
+             higher up in this file. -->
 
         <script>
         // âââ STATE âââ
@@ -1201,6 +1223,80 @@
         }
 
         // âââ RENDER: CLIENTS âââ
+        // âââ ADD CLIENT âââ
+        // Rule: first + last name required, plus AT LEAST ONE of email / phone.
+        // This is checked here for a fast, friendly error, and again on the
+        // server (admin-api.js) and in the database (CHECK constraint).
+        function openAddClientModal() {
+            ['newClientFirstName','newClientLastName','newClientEmail','newClientPhone','newClientNotes']
+                .forEach(id => { document.getElementById(id).value = ''; });
+            const err = document.getElementById('addClientError');
+            err.style.display = 'none';
+            err.textContent = '';
+            document.getElementById('addClientModal').classList.add('active');
+            document.getElementById('newClientFirstName').focus();
+        }
+
+        function closeAddClientModal() {
+            document.getElementById('addClientModal').classList.remove('active');
+        }
+
+        function showAddClientError(msg) {
+            const err = document.getElementById('addClientError');
+            err.textContent = msg;
+            err.style.display = 'block';
+        }
+
+        async function handleCreateClient() {
+            const firstName = document.getElementById('newClientFirstName').value.trim();
+            const lastName  = document.getElementById('newClientLastName').value.trim();
+            const email     = document.getElementById('newClientEmail').value.trim();
+            const phone     = document.getElementById('newClientPhone').value.trim();
+            const notes     = document.getElementById('newClientNotes').value.trim();
+
+            if (!firstName) return showAddClientError('Please enter a first name.');
+            if (!lastName)  return showAddClientError('Please enter a last name.');
+
+            // The whole point of this feature: only ONE contact method is needed.
+            if (!email && !phone) {
+                return showAddClientError('Please enter an email address or a phone number. Just one is enough.');
+            }
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return showAddClientError("That email address doesn't look right.");
+            }
+            if (phone && phone.replace(/\D/g, '').length < 10) {
+                return showAddClientError("That phone number doesn't look right (needs at least 10 digits).");
+            }
+
+            const btn = document.getElementById('addClientSaveBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const created = await apiCall('createClient', {
+                    firstName, lastName, email, phone, clientNotes: notes
+                });
+
+                closeAddClientModal();
+                await loadAllData();
+                filterClients();
+
+                const dupes = created.possibleDuplicates || [];
+                if (dupes.length > 0) {
+                    alert(
+                        `Client "${firstName} ${lastName}" was created.\n\n` +
+                        `Heads up: there ${dupes.length === 1 ? 'is already 1 other client' : `are already ${dupes.length} other clients`} ` +
+                        `with the same name. If that's the same person, you can use "Merge Duplicates" to combine them.`
+                    );
+                }
+            } catch (e) {
+                showAddClientError(e.message || 'Could not create the client. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Client';
+            }
+        }
+
         function filterClients() {
             const search = document.getElementById('clientSearch').value.toLowerCase();
             const sort = document.getElementById('clientSort').value;
