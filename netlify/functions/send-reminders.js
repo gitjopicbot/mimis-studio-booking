@@ -1,9 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
+// Server-side only. Uses the service role so the RLS lockdown (which revokes
+// anon access to these tables) doesn't break this function.
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);

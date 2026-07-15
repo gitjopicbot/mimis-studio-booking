@@ -7,21 +7,52 @@
 const { createClient } = require("@supabase/supabase-js");
 const crypto = require("crypto");
 
-const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "mimi-studio-secret-key";
+const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET;
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+/**
+ * Verify the HMAC-signed, expiring token issued by admin-auth.js.
+ *
+ * The previous version of this function decoded the token but never checked
+ * any signature — any base64 string with a recent timestamp was accepted,
+ * leaving this import endpoint effectively unauthenticated.
+ */
 function validateToken(authHeader) {
+  if (!TOKEN_SECRET) {
+    console.error("ADMIN_TOKEN_SECRET is not set — refusing all bulk-import requests.");
+    return false;
+  }
   if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
+
   try {
-    const token = authHeader.substring(7);
-    const decoded = Buffer.from(token, "base64").toString("utf-8");
-    const parts = decoded.split(":");
-    if (parts.length < 3) return false;
-    const ts = parseInt(parts[2]);
-    if (Date.now() - ts > 24 * 60 * 60 * 1000) return false;
+    const token = authHeader.substring(7).trim();
+    const dot = token.indexOf(".");
+    if (dot < 1) return false;
+
+    const p = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+
+    const expected = Buffer.from(
+      crypto.createHmac("sha256", TOKEN_SECRET).update(p).digest()
+    )
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    const a = Buffer.from(sig, "utf8");
+    const b = Buffer.from(expected, "utf8");
+    if (a.length !== b.length) return false;
+    if (!crypto.timingSafeEqual(a, b)) return false;
+
+    const payload = JSON.parse(Buffer.from(p, "base64").toString("utf8"));
+    if (!payload || typeof payload.exp !== "number") return false;
+    if (Date.now() > payload.exp) return false;
+
     return true;
   } catch {
     return false;
@@ -30,7 +61,7 @@ function validateToken(authHeader) {
 
 exports.handler = async (event) => {
   const headers = {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN || "https://mimisstudio1.com",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Content-Type": "application/json",

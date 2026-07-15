@@ -1,8 +1,10 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Server-side only. Uses the service role so the RLS lockdown (which revokes
+// anon access to these tables) doesn't break this function.
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 exports.handler = async (event) => {

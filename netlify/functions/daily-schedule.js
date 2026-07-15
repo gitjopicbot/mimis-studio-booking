@@ -1,9 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
+// Server-side only. Uses the service role so the RLS lockdown (which revokes
+// anon access to these tables) doesn't break this function.
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -161,7 +163,7 @@ function scheduleEmailWithAppointments(tomorrow, appointments) {
     <div style="padding: 40px;">
       <h2 style="color: #5C3D2E; font-size: 24px; margin: 0 0 10px;">Tomorrow's Schedule</h2>
       <p style="color: #8B7355; font-size: 15px; margin: 0 0 25px;">
-        <strong>${dateFormatted}</strong> â¢ <span style="color: #C47D5A; font-weight: bold;">${appointments.length} appointment${appointments.length === 1 ? '' : 's'}</span>
+        <strong>${dateFormatted}</strong> • <span style="color: #C47D5A; font-weight: bold;">${appointments.length} appointment${appointments.length === 1 ? '' : 's'}</span>
       </p>
 
       <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(92, 61, 46, 0.1);">

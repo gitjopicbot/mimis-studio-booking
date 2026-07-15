@@ -1,104 +1,146 @@
 /**
  * Netlify Function: Admin Authentication
- * Handles login for the Mimi's Studio admin panel
  *
- * Expected POST body:
- * {
- *   "username": "string",
- *   "password": "string"
- * }
+ * SECURITY NOTES (read before changing):
+ *   - No credentials live in this file. Everything comes from environment
+ *     variables set in the Netlify dashboard.
+ *   - The password is never stored anywhere, only a salted scrypt hash of it.
+ *   - Tokens are HMAC-SHA256 signed and expire. A token cannot be forged
+ *     without ADMIN_TOKEN_SECRET.
+ *   - If any required env var is missing we FAIL CLOSED (500). There is
+ *     deliberately no default/fallback secret — that was the old bug.
  *
- * Success (200):
- * {
- *   "token": "base64_encoded_token"
- * }
- *
- * Failure (401):
- * {
- *   "error": "Invalid credentials"
- * }
+ * Required environment variables:
+ *   ADMIN_USERNAME       e.g. "Dovegal"
+ *   ADMIN_PASSWORD_HASH  "<saltHex>:<hashHex>"  (generate with tools/generate-password-hash.js)
+ *   ADMIN_TOKEN_SECRET   long random string (e.g. 48+ chars)
+ *   ALLOWED_ORIGIN       e.g. "https://mimisstudio1.com"
  */
 
-const ADMIN_USERNAME = "Dovegal";
-const ADMIN_PASSWORD = "Paige&Joe9295";
-const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "mimi-studio-secret-key";
+const crypto = require("crypto");
 
-function generateToken(username) {
-  // Simple token generation: base64(username + timestamp + secret)
-  const timestamp = Date.now();
-  const data = `${username}:${timestamp}:${TOKEN_SECRET}`;
-  return Buffer.from(data).toString("base64");
-}
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
+const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET;
+
+// How long an admin session lasts before re-login is required.
+const TOKEN_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+// scrypt parameters — must match tools/generate-password-hash.js
+const SCRYPT_KEYLEN = 64;
+const SCRYPT_OPTS = { N: 16384, r: 8, p: 1 };
 
 function getCorsHeaders() {
   return {
-    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN || "*",
+    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN || "https://mimisstudio1.com",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Content-Type": "application/json",
   };
 }
 
+function base64url(buf) {
+  return Buffer.from(buf).toString("base64")
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+/**
+ * Constant-time string compare that never throws on length mismatch.
+ */
+function safeEqual(a, b) {
+  const ba = Buffer.from(String(a), "utf8");
+  const bb = Buffer.from(String(b), "utf8");
+  if (ba.length !== bb.length) {
+    // Still burn a comparison so timing doesn't leak length.
+    crypto.timingSafeEqual(ba, ba);
+    return false;
+  }
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+/**
+ * Verify a plaintext password against "<saltHex>:<hashHex>".
+ */
+function verifyPassword(password, stored) {
+  const [saltHex, hashHex] = String(stored).split(":");
+  if (!saltHex || !hashHex) return false;
+
+  const salt = Buffer.from(saltHex, "hex");
+  const expected = Buffer.from(hashHex, "hex");
+  if (expected.length !== SCRYPT_KEYLEN) return false;
+
+  const actual = crypto.scryptSync(password, salt, SCRYPT_KEYLEN, SCRYPT_OPTS);
+  return crypto.timingSafeEqual(actual, expected);
+}
+
+/**
+ * Create a signed, expiring token: base64url(payload) + "." + base64url(hmac)
+ */
+function signToken(username) {
+  const payload = JSON.stringify({
+    u: username,
+    iat: Date.now(),
+    exp: Date.now() + TOKEN_TTL_MS,
+  });
+  const p = base64url(payload);
+  const sig = base64url(
+    crypto.createHmac("sha256", TOKEN_SECRET).update(p).digest()
+  );
+  return `${p}.${sig}`;
+}
+
 exports.handler = async (event) => {
   const headers = getCorsHeaders();
 
-  // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers,
-      body: "",
-    };
+    return { statusCode: 200, headers, body: "" };
   }
 
-  // Only accept POST requests
   if (event.httpMethod !== "POST") {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: "Method not allowed" }) };
+  }
+
+  // Fail closed if the server isn't configured. Never fall back to a default.
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD_HASH || !TOKEN_SECRET) {
+    console.error(
+      "admin-auth is not configured. Missing one of: ADMIN_USERNAME, ADMIN_PASSWORD_HASH, ADMIN_TOKEN_SECRET"
+    );
     return {
-      statusCode: 405,
+      statusCode: 500,
       headers,
-      body: JSON.stringify({ error: "Method not allowed" }),
+      body: JSON.stringify({ error: "Admin login is not configured. Contact the site owner." }),
     };
   }
 
   try {
-    const body = JSON.parse(event.body || "{}");
-    const { username, password } = body;
+    const { username, password } = JSON.parse(event.body || "{}");
 
-    // Validate input
     if (!username || !password) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          error: "Missing username or password",
-        }),
-      };
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing username or password" }) };
     }
 
-    // Validate credentials
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      const token = generateToken(username);
+    const userOk = safeEqual(username, ADMIN_USERNAME);
+    // Always run the password check so a wrong username and a wrong password
+    // take the same amount of time (no username enumeration).
+    let passOk = false;
+    try {
+      passOk = verifyPassword(password, ADMIN_PASSWORD_HASH);
+    } catch (e) {
+      passOk = false;
+    }
+
+    if (userOk && passOk) {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token: signToken(ADMIN_USERNAME), expiresIn: TOKEN_TTL_MS }),
       };
     }
 
-    // Invalid credentials
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({ error: "Invalid credentials" }),
-    };
+    console.warn("Failed admin login attempt");
+    return { statusCode: 401, headers, body: JSON.stringify({ error: "Invalid credentials" }) };
   } catch (error) {
-    console.error("Auth error:", error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        error: "Internal server error",
-      }),
-    };
+    console.error("Auth error:", error.message);
+    return { statusCode: 500, headers, body: JSON.stringify({ error: "Internal server error" }) };
   }
 };

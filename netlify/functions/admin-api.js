@@ -10,35 +10,71 @@
  *   addAdminNote, clearTestData, getDailySchedule, adminBookAppointment
  */
 
+const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
 const { Resend } = require("resend");
 
-const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || "mimi-studio-secret-key";
+const TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET;
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+// Server-side only. The anon key can no longer read these tables once the
+// RLS lockdown migration has been run, so the functions use the service role.
+const SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
 
+/**
+ * Verify an HMAC-signed, expiring token issued by admin-auth.js.
+ * Format: base64url(payload).base64url(hmacSha256(payload, TOKEN_SECRET))
+ *
+ * Fails closed if ADMIN_TOKEN_SECRET is not configured — there is deliberately
+ * no default secret. The previous version accepted any token whose third
+ * colon-separated segment matched a publicly-known fallback string.
+ */
 function validateToken(authHeader) {
+  if (!TOKEN_SECRET) {
+    console.error("ADMIN_TOKEN_SECRET is not set — refusing all admin requests.");
+    return false;
+  }
   if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
+
   try {
-    const token = authHeader.substring(7);
-    const decoded = Buffer.from(token, "base64").toString("utf-8");
-    const parts = decoded.split(":");
-    if (parts.length !== 3) return false;
-    if (parts[2] !== TOKEN_SECRET) return false;
+    const token = authHeader.substring(7).trim();
+    const dot = token.indexOf(".");
+    if (dot < 1) return false;
+
+    const p = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+
+    const expected = Buffer.from(
+      crypto.createHmac("sha256", TOKEN_SECRET).update(p).digest()
+    )
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    const a = Buffer.from(sig, "utf8");
+    const b = Buffer.from(expected, "utf8");
+    if (a.length !== b.length) return false;
+    if (!crypto.timingSafeEqual(a, b)) return false;
+
+    const payload = JSON.parse(Buffer.from(p, "base64").toString("utf8"));
+    if (!payload || typeof payload.exp !== "number") return false;
+    if (Date.now() > payload.exp) return false; // expired
+
     return true;
   } catch (error) {
-    console.error("Token validation error:", error);
+    console.error("Token validation error:", error.message);
     return false;
   }
 }
 
 function getCorsHeaders() {
   return {
-    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN || "*",
+    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGIN || "https://mimisstudio1.com",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Content-Type": "application/json",
@@ -47,6 +83,16 @@ function getCorsHeaders() {
 
 function errorResponse(statusCode, message) {
   return { statusCode, headers: getCorsHeaders(), body: JSON.stringify({ error: message }) };
+}
+
+/**
+ * A user-facing validation failure (bad input), as opposed to a server fault.
+ * The main handler maps these to HTTP 400 instead of 500.
+ */
+function badRequest(message) {
+  const e = new Error(message);
+  e.statusCode = 400;
+  return e;
 }
 
 function successResponse(data) {
@@ -286,7 +332,17 @@ async function getClients() {
 async function searchClients(query) {
   if (!query || query.trim().length === 0) return [];
 
-  const q = query.trim().toLowerCase();
+  // NOTE: `q` is interpolated into PostgREST .or() filter strings below.
+  // Commas and parentheses separate conditions there, so a crafted search
+  // string could otherwise rewrite the filter. Dots are safe (PostgREST only
+  // splits on the first two), and we need them for email search.
+  const q = query
+    .trim()
+    .toLowerCase()
+    .replace(/[,()\\"']/g, "")
+    .slice(0, 100);
+
+  if (!q) return [];
 
   // Search by name
   const { data: nameResults } = await supabase
@@ -789,6 +845,94 @@ async function clearTestData() {
   return { cleared: true };
 }
 
+// ─── CREATE CLIENT ─────────────────────────────────────────
+/**
+ * Create a client from the admin panel.
+ *
+ * Mimi's rule: first and last name are always required, plus AT LEAST ONE of
+ * email or phone. Both is fine, but only one is necessary.
+ *
+ * The database enforces the same rule (see the client_contact_required CHECK
+ * constraint) so this can't be bypassed by calling the API directly.
+ */
+async function createClientRecord(input) {
+  const firstName = String(input.firstName || "").trim();
+  const lastName = String(input.lastName || "").trim();
+
+  let email = String(input.email || "").trim().toLowerCase();
+  let phone = String(input.phone || "").trim();
+
+  if (!firstName) throw badRequest("First name is required.");
+  if (!lastName) throw badRequest("Last name is required.");
+
+  // Empty string is not a contact method — normalise to NULL.
+  if (!email) email = null;
+  if (!phone) phone = null;
+
+  if (!email && !phone) {
+    throw badRequest("Please provide an email address or a phone number (at least one is required).");
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw badRequest("That email address doesn't look valid.");
+  }
+
+  if (phone && phone.replace(/\D/g, "").length < 10) {
+    throw badRequest("That phone number doesn't look valid (needs at least 10 digits).");
+  }
+
+  const { data: client, error } = await supabase
+    .from("clients")
+    .insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      remind_email: !!email,
+      remind_sms: false,
+      remind_browser: false,
+      notes: "",
+      client_notes: String(input.clientNotes || ""),
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new Error(`Could not create client: ${error.message}`);
+
+  // Seed the extended contact tables, but only with what we actually have.
+  if (phone) {
+    await supabase.from("client_phones").insert({
+      client_id: client.id,
+      phone,
+      label: "primary",
+    });
+  }
+  if (email) {
+    await supabase.from("client_emails").insert({
+      client_id: client.id,
+      email,
+      label: "primary",
+    });
+  }
+
+  // Surface likely duplicates so Mimi can merge instead of ending up with two
+  // records for the same person. We still create the client either way.
+  const { data: sameName } = await supabase
+    .from("clients")
+    .select("id, first_name, last_name, email, phone")
+    .ilike("first_name", firstName)
+    .ilike("last_name", lastName)
+    .neq("id", client.id);
+
+  return {
+    ...client,
+    phones: phone ? [{ phone, label: "primary" }] : [],
+    emails: email ? [{ email, label: "primary" }] : [],
+    appointment_count: 0,
+    possibleDuplicates: sameName || [],
+  };
+}
+
 // ─── MAIN HANDLER ──────────────────────────────────────────
 
 exports.handler = async (event) => {
@@ -828,6 +972,11 @@ exports.handler = async (event) => {
         break;
       case "getClients":
         result = await getClients();
+        break;
+      case "createClient":
+        // Validation lives in createClientRecord (and is mirrored by a DB
+        // CHECK constraint): first + last name, and email OR phone.
+        result = await createClientRecord(params);
         break;
       case "searchClients":
         if (!params.query) return errorResponse(400, "Missing search query");
@@ -895,7 +1044,11 @@ exports.handler = async (event) => {
 
     return successResponse(result);
   } catch (error) {
-    console.error("Admin API error:", error);
-    return errorResponse(500, error.message || "Internal server error");
+    // Validation failures (badRequest) are the caller's fault -> 400.
+    // Anything else is ours -> 500.
+    const status = error.statusCode || 500;
+    if (status >= 500) console.error("Admin API error:", error);
+    else console.warn("Admin API rejected request:", error.message);
+    return errorResponse(status, error.message || "Internal server error");
   }
 };
